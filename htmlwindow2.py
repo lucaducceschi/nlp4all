@@ -15,7 +15,7 @@ import os
 import os.path
 from shutil import copyfile
 import bs4
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 
 FileFilter2 =    "Html files (*.html)|*.html|" \
                 "All files (*.*)|*.*"
