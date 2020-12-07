@@ -56,6 +56,7 @@ def generate_json(doc_):
 
 
 
+class verbfilter
 
 # raw_pirandello = clean_text_from_gutenberg(sample_it_url).strip()
 # # processed_pirandello = nlp_it(raw_pirandello)
