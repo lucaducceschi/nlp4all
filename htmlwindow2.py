@@ -133,6 +133,7 @@ class MyFrame4 ( wx.Frame ):
     
     # Virtual event handlers, overide them in your derived class
     def buttonCSSOnButtonClick( self, event ):
+        # todo:mod this to load a json
         dlg = wx.FileDialog(
             self, 
             message = "Choose a file",
