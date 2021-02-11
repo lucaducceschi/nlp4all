@@ -111,7 +111,7 @@ class MyFrame1 ( wx.Frame ):
         self.Centre( wx.BOTH )
         
         #variables
-        self.n = 0
+        self.n = -1
         self.row = 0
         self.colum = 0
         self.add_column = 1
@@ -235,25 +235,63 @@ class MyFrame1 ( wx.Frame ):
     
     
     def sent_inst_rightClick( self, event, id ):
+
+        #print("id is "+str(id))
         add_id = id - 1
-        if id in self.button_dict:
-          self.button_dict[id].Destroy()
-          self.button_dict[add_id].Destroy()
-        
-        """add_id = id - 1
-        if id in self.button_dict:
-          self.button_dict[id].Destroy()
-          self.Layout()
-          self.button_dict[add_id].Destroy()
-          self.Layout()
-          for button in self.button_dict:
+        j= -1
+        for x in self.button_dict.keys():
+            j+=1
+            if id == x:
+                break
+        #print("j  "+ str(j))
+        #print("BABIES "+str(len(self.bagSizer1.GetChildren())))
+
+        if self.bagSizer1.GetChildren():
+            
+            position1 = self.bagSizer1.GetItemPosition(self.button_dict[id])
+            print("position is" + str(position1))
+            
+            sizer_item = self.bagSizer1.GetItem(j)
+            widget = sizer_item.GetWindow()
+            self.bagSizer1.Hide(widget)
+            widget.Destroy()
+            
+            sizer_item2 = self.bagSizer1.GetItem(j-1)
+            widget2 = sizer_item2.GetWindow()
+            self.bagSizer1.Hide(widget2)
+            widget2.Destroy()
+            
+           
+            """row1 = position1.GetRow()
+            col1 = 2
+            sizer_item3 = self.bagSizer1.FindItemAtPosition((row1,col1))
+            widget3 = sizer_item3.GetWindow()"""
+
+            #self.bagSizer1.Hide(widget3)
+            #widget3.Destroy()
+            #print(button)
+            self.button_dict.pop(id)
+            self.button_dict.pop(add_id)
+           
+            self.Layout()
+          #self.button_dict[add_id].Destroy()
+          #self.Layout()
+            for i in self.button_dict.keys():
+              print(i)
+              if int(i) < int(id)+1:
+                  continue
+              
+              button=self.button_dict[i]
               self.position = self.bagSizer1.GetItemPosition(button)
+              print(self.position)
               self.rows = self.position.GetRow()
               self.cols = self.position.GetCol()
-              self.bagSizer1.SetItemPosition(button, (self.rows - 2,self.cols))
+              self.bagSizer1.SetItemPosition(button,pos=(self.rows - 1,self.cols))
               print(self.position)
-                   
-          self.Layout()"""
+
+              self.Layout()
+            self.row -=1
+            self.normal_case = True
           
 
     def verb_button_onClick( self, event ):
@@ -261,6 +299,7 @@ class MyFrame1 ( wx.Frame ):
         self.verb_inst = wx.Button( self, id = self.n, label = "verb", size = wx.DefaultSize )
         if self.normal_case:
             self.bagSizer1.Add(self.verb_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+            self.row +=1
             
         else:
             self.bagSizer1.Add(self.verb_inst, pos=(self.add_row , 2), flag=wx.ALL, border=5)
@@ -270,7 +309,7 @@ class MyFrame1 ( wx.Frame ):
         func = functools.partial(self.verb_inst_rightClick , id = self.n)
         self.verb_inst.Bind(wx.EVT_RIGHT_DOWN, func)
         
-        self.row +=1
+        self.normal_case = True
         self.Layout() #to update frame
 
     def verb_inst_onClick( self, event ):
@@ -426,8 +465,46 @@ class MyFrame1 ( wx.Frame ):
         self.Layout()
 
     def verb_inst_rightClick( self, event, id ):
-        if id in self.button_dict:
-          self.button_dict[id].Destroy()
+        
+        """if id in self.button_dict:
+          self.button_dict[id].Destroy()"""
+        j= -1
+        for x in self.button_dict.keys():
+            j+=1
+            if id == x:
+                break
+        
+        position1 = self.bagSizer1.GetItemPosition(self.button_dict[id])
+        col1 = position1.GetCol()
+        if self.bagSizer1.GetChildren():
+            sizer_item = self.bagSizer1.GetItem(j)
+            widget = sizer_item.GetWindow()
+            self.bagSizer1.Hide(widget)
+            widget.Destroy()
+            
+            
+            self.button_dict.pop(id)
+           
+            self.Layout()
+
+            for i in self.button_dict.keys():
+              print(i)
+              if int(i) < int(id)+1:
+                  continue
+              
+              button=self.button_dict[i]
+              self.position = self.bagSizer1.GetItemPosition(button)
+              print(self.position)
+              self.rows = self.position.GetRow()
+              self.cols = self.position.GetCol()
+              self.bagSizer1.SetItemPosition(button,pos=(self.rows - 1,self.cols))
+              print(self.position)
+
+              self.Layout()
+            
+            if col1 == 1:
+                self.row -=1
+            self.normal_case = True
 
     def noun_button_onClick( self, event ):
         
@@ -435,6 +512,7 @@ class MyFrame1 ( wx.Frame ):
         self.noun_inst = wx.Button( self, id = self.n, label = "noun", size = wx.DefaultSize )
         if self.normal_case:
             self.bagSizer1.Add(self.noun_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+            self.row +=1
             
         else:
             self.bagSizer1.Add(self.noun_inst, pos=(self.add_row , 2), flag=wx.ALL, border=5)
@@ -444,7 +522,7 @@ class MyFrame1 ( wx.Frame ):
         func = functools.partial(self.noun_inst_rightClick , id = self.n)
         self.noun_inst.Bind(wx.EVT_RIGHT_DOWN, func)
         
-        self.row +=1
+        self.normal_case = True
         self.Layout() #to update frame
     
     def noun_inst_onClick( self, event ):
@@ -522,15 +600,51 @@ class MyFrame1 ( wx.Frame ):
         self.Layout()
     
     def noun_inst_rightClick( self, event, id ):
-        if id in self.button_dict:
-          self.button_dict[id].Destroy()
+        j= -1
+        for x in self.button_dict.keys():
+            j+=1
+            if id == x:
+                break
+
+        position1 = self.bagSizer1.GetItemPosition(self.button_dict[id])
+        col1 = position1.GetCol()
+        if self.bagSizer1.GetChildren():
+            sizer_item = self.bagSizer1.GetItem(j)
+            widget = sizer_item.GetWindow()
+            self.bagSizer1.Hide(widget)
+            widget.Destroy()
+            
+            
+            self.button_dict.pop(id)
+           
+            self.Layout()
+
+            for i in self.button_dict.keys():
+              print(i)
+              if int(i) < int(id)+1:
+                  continue
+              
+              button=self.button_dict[i]
+              self.position = self.bagSizer1.GetItemPosition(button)
+              print(self.position)
+              self.rows = self.position.GetRow()
+              self.cols = self.position.GetCol()
+              self.bagSizer1.SetItemPosition(button,pos=(self.rows - 1,self.cols))
+              print(self.position)
+
+              self.Layout()
+            if col1 == 1:
+                self.row -=1
+            self.normal_case = True
+        """if id in self.button_dict:
+          self.button_dict[id].Destroy()"""
 
     def adj_button_onClick( self, event ):
         self.n += 1
         self.adj_inst = wx.Button( self, id = self.n, label = "adjective", size = wx.DefaultSize )
         if self.normal_case:
             self.bagSizer1.Add(self.adj_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
-            
+            self.row +=1
         else:
             self.bagSizer1.Add(self.adj_inst, pos=(self.add_row , 2), flag=wx.ALL, border=5)
 
@@ -539,7 +653,7 @@ class MyFrame1 ( wx.Frame ):
         func = functools.partial(self.adj_inst_rightClick , id = self.n)
         self.adj_inst.Bind(wx.EVT_RIGHT_DOWN, func)
         
-        self.row +=1
+        self.normal_case = True
         self.Layout() #to update frame
     
     def adj_inst_onClick( self, event ):
@@ -630,8 +744,44 @@ class MyFrame1 ( wx.Frame ):
         self.Layout()
 
     def adj_inst_rightClick( self, event, id ):
-        if id in self.button_dict:
-          self.button_dict[id].Destroy()
+        j= -1
+        for x in self.button_dict.keys():
+            j+=1
+            if id == x:
+                break
+
+        position1 = self.bagSizer1.GetItemPosition(self.button_dict[id])
+        col1 = position1.GetCol()
+        if self.bagSizer1.GetChildren():
+            sizer_item = self.bagSizer1.GetItem(j)
+            widget = sizer_item.GetWindow()
+            self.bagSizer1.Hide(widget)
+            widget.Destroy()
+            
+            
+            self.button_dict.pop(id)
+           
+            self.Layout()
+
+            for i in self.button_dict.keys():
+              print(i)
+              if int(i) < int(id)+1:
+                  continue
+              
+              button=self.button_dict[i]
+              self.position = self.bagSizer1.GetItemPosition(button)
+              print(self.position)
+              self.rows = self.position.GetRow()
+              self.cols = self.position.GetCol()
+              self.bagSizer1.SetItemPosition(button,pos=(self.rows - 1,self.cols))
+              print(self.position)
+
+              self.Layout()
+            if col1 == 1:
+                self.row -=1
+            self.normal_case = True
+        """if id in self.button_dict:
+          self.button_dict[id].Destroy()"""
 
     def lens_button_onClick( self, event ):
         if (self.lens_row == 0):
