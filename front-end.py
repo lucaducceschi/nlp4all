@@ -8,18 +8,24 @@
 ###########################################################################
 
 import wx
-import wx.lib.sized_controls as sc
+# import wx.lib.sized_controls as sc
 import wx.xrc
 import wx.html
 import wx.html2
-import os
-import os.path
-from shutil import copyfile
-import bs4
-from bs4 import BeautifulSoup
-from array import *
+# import os
+# import os.path
+# from shutil import copyfile
+# import bs4
+# from bs4 import BeautifulSoup
+# from array import *
 import functools
+import pickle
+# import stanza
+# nlp4ll module to deal with json and stanza
+from utils import stanza_annotation, generate_d_from_stanza
 
+FILEFILTER_PKL =    "Json files (*.pkl)|*.pkl|" \
+                "All files (*.*)|*.*"
 FileFilter3 =    "Json files (*.json)|*.json|" \
                 "All files (*.*)|*.*"
 
@@ -32,16 +38,18 @@ FileFilter =    "Css files (*.css)|*.css|" \
 class MyFrame1 ( wx.Frame ):
     
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1000, 700), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1000, 700),
+                           style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         #menu bar
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
         self.exitMenuItem = self.fileMenu.Append(wx.NewId(), "open",
-                                       "choose JSON file")
+                                       "choose a pickle file")
         self.menuBar.Append(self.fileMenu, "&File")
         self.Bind(wx.EVT_MENU, self.open_json, self.exitMenuItem)
         self.SetMenuBar(self.menuBar)
+        self.docfile = {}
       
         # 1st row of widgets
         self.sentence_button = wx.Button( self, wx.ID_ANY, u"Sentence", pos = (10,1), size = wx.DefaultSize )
@@ -122,16 +130,17 @@ class MyFrame1 ( wx.Frame ):
         self.Close()
 
     def sentence_button_onClick( self, event ): 
-        self.n += 1
-        self.add = wx.Button( self, id = self.n, label = "+", size = (15,15) )
-        self.button_dict[self.n] = self.add
         
         self.n += 1
         self.sentence_inst = wx.Button( self, id = self.n, label = "sentence", size = wx.DefaultSize )
         self.button_dict[self.n] = self.sentence_inst
         
-        self.bagSizer1.Add(self.add, pos=(self.row , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer1.Add(self.sentence_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+        self.n += 1
+        self.add = wx.Button( self, id = self.n, label = "+", size = (15,15) )
+        self.button_dict[self.n] = self.add
+        
+        self.bagSizer1.Add(self.sentence_inst, pos=(self.row , 0 ), flag=wx.ALL, border=5)
+        self.bagSizer1.Add(self.add, pos=(self.row , 1 ), flag=wx.ALL, border= 5)
         
         func = functools.partial(self.add_onClick, row = self.row)
         self.add.Bind( wx.EVT_BUTTON, func )
@@ -150,6 +159,7 @@ class MyFrame1 ( wx.Frame ):
         self.add_row = row
         self.add_column += 1
         self.normal_case = False
+        #self.add.SetLabel("-")
     
     def sent_inst_onClick( self, event):
         self.bagSizer2.Clear(True)
@@ -158,58 +168,60 @@ class MyFrame1 ( wx.Frame ):
         self.line2.Show()
         
         # row 1
-        self.text1 = wx.StaticText(self, wx.ID_ANY, "Main type")
+        self.stextMain = wx.StaticText(self, wx.ID_ANY, "Main type")
         
-        self.m_button1 = wx.ToggleButton( self, wx.ID_ANY, label = "Declarative")
-        self.m_button1.SetValue(True)
+        self.sbuttonDec = wx.ToggleButton( self, wx.ID_ANY, label = "Declarative")
+        self.sbuttonDec.SetValue(True)
         
-        self.m_button2 = wx.ToggleButton( self, wx.ID_ANY, u"Interrogative")
-        self.m_button2.SetValue(True)
+        self.sbuttonInt = wx.ToggleButton( self, wx.ID_ANY, u"Interrogative")
+        self.sbuttonInt.SetValue(True)
         
-        self.m_button3 = wx.ToggleButton( self, wx.ID_ANY, u"Exclamative" )
-        self.m_button3.SetValue(True)
+        self.sbuttonExc = wx.ToggleButton( self, wx.ID_ANY, u"Exclamative" )
+        self.sbuttonExc.SetValue(True)
         
         # row 2
-        self.text2 = wx.StaticText(self, wx.ID_ANY, "Relative sentences")
+        self.stextRelative = wx.StaticText(self, wx.ID_ANY, "Relative sentences")
 
-        self.m_button4 = wx.ToggleButton( self, wx.ID_ANY, u"has relative sentences")
-        self.m_button4.SetValue(True)
+        self.sbuttonRel = wx.ToggleButton( self, wx.ID_ANY, u"has relative sentences")
+        self.sbuttonRel.SetValue(True)
         
-        self.m_button5 = wx.ToggleButton( self, wx.ID_ANY, u"has conncetors" )
-        self.m_button5.SetValue(True)
+        self.sbuttonConn = wx.ToggleButton( self, wx.ID_ANY, u"has conncetors" )
+        self.sbuttonConn.SetValue(True)
         
         # row 3
-        self.text3 = wx.StaticText(self, wx.ID_ANY, "Number of words")
-        self.box1= wx.TextCtrl(self, size=(60, -1))
+        self.stextWords = wx.StaticText(self, wx.ID_ANY, "Number of words")
+        self.sTextCtrlwords= wx.TextCtrl(self, size=(60, -1))
         
         # row 4
-        self.text4 = wx.StaticText(self, wx.ID_ANY, "Number of content words")
-        self.box2 = wx.TextCtrl(self, size=(60, -1))
+        self.stextcontent = wx.StaticText(self, wx.ID_ANY, "Number of content words")
+        self.sTextCtrlcontent = wx.TextCtrl(self, size=(60, -1))
         
         #ADD TO BAG SIZER
-        self.bagSizer2.Add(self.text1, pos=(0 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button1, pos=(0 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button2, pos=(0 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button3, pos=(0 , 3 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.text2, pos=(1 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button4, pos=(1 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button5, pos=(1 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.text3, pos=(2 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.box1, pos=(2 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.text4, pos=(3 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.box2, pos=(3 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.stextMain, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sbuttonDec, pos=(0 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sbuttonInt, pos=(0 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sbuttonExc, pos=(0 , 3 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.stextRelative, pos=(1 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sbuttonRel, pos=(1 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sbuttonConn, pos=(1 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.stextWords, pos=(2 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sTextCtrlwords, pos=(2 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.stextcontent, pos=(3 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.sTextCtrlcontent, pos=(3 , 1 ), flag=wx.ALL, border= 5)
         
         #line
         self.line3.Show()
         
         #lens
-        self.text = wx.StaticText(self, wx.ID_ANY, "lens")
+        self.lenslabel = wx.StaticText(self, wx.ID_ANY, "lens")
         
         fonts = ['Arial','Calibri', 'Times New Roman'] 
         self.FontBtn = wx.ComboBox(self,choices = fonts, size = (180,25))
+        self.FontBtn.SetValue("Arial")
         
         fonts_size = ['6','7','8','9','10','11', '12', '13', '14', '15', '16','17','18','19', '20','28','36','48', '72']
         self.SizeBtn = wx.ComboBox(self,choices = fonts_size, size = (60,25))
+        self.SizeBtn.SetValue("11")
 
         self.colorBtn = wx.Button(self, label="Font color", size = (120,25))
         
@@ -220,7 +232,7 @@ class MyFrame1 ( wx.Frame ):
         self.ItalicBtn = wx.ToggleButton(self, label="Italic", size = (120,25))
         
         #ADD TO BAG SIZER
-        self.bagSizer3.Add(self.text, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer3.Add(self.lenslabel, pos=(0 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.FontBtn, pos=(1 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.SizeBtn, pos=(1 , 1 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.BoldBtn, pos=(2 , 0 ), flag=wx.ALL, border= 5)
@@ -235,6 +247,12 @@ class MyFrame1 ( wx.Frame ):
     
     
     def sent_inst_rightClick( self, event, id ):
+        
+        self.bagSizer2.Clear(True)
+        self.bagSizer3.Clear(True)
+        
+        self.line2.Hide()
+        self.line3.Hide()
 
         #print("id is "+str(id))
         add_id = id - 1
@@ -298,7 +316,7 @@ class MyFrame1 ( wx.Frame ):
         self.n += 1
         self.verb_inst = wx.Button( self, id = self.n, label = "verb", size = wx.DefaultSize )
         if self.normal_case:
-            self.bagSizer1.Add(self.verb_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+            self.bagSizer1.Add(self.verb_inst, pos=(self.row , 0 ), flag=wx.ALL, border=5)
             self.row +=1
             
         else:
@@ -319,128 +337,130 @@ class MyFrame1 ( wx.Frame ):
         self.line2.Show()
         
         # row 1
-        self.text1 = wx.StaticText(self, -1, "Lemma")
-        self.textCtrl = wx.TextCtrl(self)
+        self.vtextlemma = wx.StaticText(self, -1, "Lemma")
+        self.vtextCtrllemma = wx.TextCtrl(self)
         
         #row2
-        self.text2 = wx.StaticText(self, -1, "Number")
+        self.vtextnum = wx.StaticText(self, -1, "Number")
         
-        self.m_button1 = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
-        self.m_button1.SetValue(True)
+        self.vbuttonsing = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
+        self.vbuttonsing.SetValue(True)
         
-        self.m_button2 = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
-        self.m_button2.SetValue(True)
+        self.vbuttonpl = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
+        self.vbuttonpl.SetValue(True)
        
         #textCtrl.SetSizerProps(expand=True)
         
         # row 3
-        self.text3= wx.StaticText(self, -1, "Person")
+        self.vtextpers= wx.StaticText(self, -1, "Person")
         
-        self.m_button3 = wx.ToggleButton( self, wx.ID_ANY, u"First" )
-        self.m_button3.SetValue(True)
+        self.vbutton1st = wx.ToggleButton( self, wx.ID_ANY, u"First" )
+        self.vbutton1st.SetValue(True)
         
-        self.m_button4 = wx.ToggleButton( self, wx.ID_ANY, u"Second" )
-        self.m_button4.SetValue(True)
+        self.vbutton2nd = wx.ToggleButton( self, wx.ID_ANY, u"Second" )
+        self.vbutton2nd.SetValue(True)
         
-        self.m_button5 = wx.ToggleButton( self, wx.ID_ANY, u"Third" )
-        self.m_button5.SetValue(True)
+        self.vbutton3rd = wx.ToggleButton( self, wx.ID_ANY, u"Third" )
+        self.vbutton3rd.SetValue(True)
         
         # row 4
-        self.text4 = wx.StaticText(self, -1, "Tense")
+        self.vtextTense = wx.StaticText(self, -1, "Tense")
         
-        self.m_button6 = wx.ToggleButton( self, wx.ID_ANY, u"Past" )
-        self.m_button6.SetValue(True)
+        self.vbuttonPast = wx.ToggleButton( self, wx.ID_ANY, u"Past" )
+        self.vbuttonPast.SetValue(True)
         
-        self.m_button7 = wx.ToggleButton( self, wx.ID_ANY, u"Present" )
-        self.m_button7.SetValue(True)
+        self.vbuttonPres = wx.ToggleButton( self, wx.ID_ANY, u"Present" )
+        self.vbuttonPres.SetValue(True)
         
-        self.m_button8 = wx.ToggleButton( self, wx.ID_ANY, u"Future" )
-        self.m_button8.SetValue(True)
+        self.vbuttonFut = wx.ToggleButton( self, wx.ID_ANY, u"Future" )
+        self.vbuttonFut.SetValue(True)
         
         # row 5
-        self.text5 = wx.StaticText(self, -1, "Form")
+        self.vtextForm = wx.StaticText(self, -1, "Form")
         
-        self.m_button9 = wx.ToggleButton( self, wx.ID_ANY, u"Fin" )
-        self.m_button9.SetValue(True)
+        self.vbuttonFin = wx.ToggleButton( self, wx.ID_ANY, u"Fin" )
+        self.vbuttonFin.SetValue(True)
         
-        self.m_button10 = wx.ToggleButton( self, wx.ID_ANY, u"Part")
-        self.m_button10.SetValue(True)
+        self.vbuttonPart = wx.ToggleButton( self, wx.ID_ANY, u"Part")
+        self.vbuttonPart.SetValue(True)
         
-        self.m_button11 = wx.ToggleButton( self, wx.ID_ANY, u"Inf")
-        self.m_button11.SetValue(True)
+        self.vbuttonInf = wx.ToggleButton( self, wx.ID_ANY, u"Inf")
+        self.vbuttonInf.SetValue(True)
         
-        self.m_button12 = wx.ToggleButton( self, wx.ID_ANY, u"Ger")
-        self.m_button12.SetValue(True)
+        self.vbuttonGer = wx.ToggleButton( self, wx.ID_ANY, u"Ger")
+        self.vbuttonGer.SetValue(True)
         
         #row 6
-        self.text6 = wx.StaticText(self, -1, "Mood")
+        self.vtextMood = wx.StaticText(self, -1, "Mood")
         
-        self.m_button13 = wx.ToggleButton( self, wx.ID_ANY, u"Ind")
-        self.m_button13.SetValue(True)
+        self.vbuttonInd = wx.ToggleButton( self, wx.ID_ANY, u"Ind")
+        self.vbuttonInd.SetValue(True)
         
-        self.m_button14 = wx.ToggleButton( self, wx.ID_ANY, u"Cnd")
-        self.m_button14.SetValue(True)
+        self.vbuttonCnd = wx.ToggleButton( self, wx.ID_ANY, u"Cnd")
+        self.vbuttonCnd.SetValue(True)
         
-        self.m_button15 = wx.ToggleButton( self, wx.ID_ANY, u"Sub")
-        self.m_button15.SetValue(True)
+        self.vbuttonSub = wx.ToggleButton( self, wx.ID_ANY, u"Sub")
+        self.vbuttonSub.SetValue(True)
         
-        self.m_button16 = wx.ToggleButton( self, wx.ID_ANY, u"Imp")
-        self.m_button16.SetValue(True)
+        self.vbuttonImp = wx.ToggleButton( self, wx.ID_ANY, u"Imp")
+        self.vbuttonImp.SetValue(True)
         
         #row 7
-        self.text7 = wx.StaticText(self, -1, "Gender")
+        self.vtextGender = wx.StaticText(self, -1, "Gender")
         
-        self.m_button17 = wx.ToggleButton( self, wx.ID_ANY, u"Feminin")
-        self.m_button17.SetValue(True)
+        self.vbuttonF = wx.ToggleButton( self, wx.ID_ANY, u"Feminin")
+        self.vbuttonF.SetValue(True)
         
-        self.m_button18 = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
-        self.m_button18.SetValue(True)
+        self.vbuttonM = wx.ToggleButton( self, wx.ID_ANY, u"Masculin")
+        self.vbuttonM.SetValue(True)
         
         
-        self.bagSizer2.Add(self.text1, pos=(0 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.textCtrl, pos=(0 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextlemma, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextCtrllemma , pos=(0 , 1 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text2, pos=(1 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button1, pos=(1 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button2, pos=(1 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextnum, pos=(1 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonsing, pos=(1 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonpl, pos=(1 , 2 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text3, pos=(2 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button3, pos=(2 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button4, pos=(2 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button5, pos=(2 , 3 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextpers, pos=(2 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbutton1st, pos=(2 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbutton2nd, pos=(2 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbutton3rd, pos=(2 , 3 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text4, pos=(3 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button6, pos=(3 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button7, pos=(3 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button8, pos=(3 , 3 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextTense, pos=(3 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonPast, pos=(3 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonPres, pos=(3 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonFut, pos=(3 , 3 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text5, pos=(4 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button9, pos=(4 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button10, pos=(4 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button11, pos=(4 , 3 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button12, pos=(4 , 4 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextForm, pos=(4 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonFin, pos=(4 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonPart, pos=(4 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonInf, pos=(4 , 3 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonGer, pos=(4 , 4 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text6, pos=(5 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button13, pos=(5 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button14, pos=(5 , 2 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button15, pos=(5 , 3 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button16, pos=(5 , 4 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextMood, pos=(5 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonInd, pos=(5 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonCnd, pos=(5 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonSub, pos=(5 , 3 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonImp, pos=(5 , 4 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text7, pos=(6 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button17, pos=(6 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button18, pos=(6 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vtextGender, pos=(6 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonF, pos=(6 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.vbuttonM, pos=(6 , 2 ), flag=wx.ALL, border= 5)
         
          #line
         self.line3.Show()
         
-        #lens
-        self.text = wx.StaticText(self, wx.ID_ANY, "lens")
+         #lens
+        self.lenslabel = wx.StaticText(self, wx.ID_ANY, "lens")
         
         fonts = ['Arial','Calibri', 'Times New Roman'] 
         self.FontBtn = wx.ComboBox(self,choices = fonts, size = (180,25))
+        self.FontBtn.SetValue("Arial")
         
         fonts_size = ['6','7','8','9','10','11', '12', '13', '14', '15', '16','17','18','19', '20','28','36','48', '72']
         self.SizeBtn = wx.ComboBox(self,choices = fonts_size, size = (60,25))
+        self.SizeBtn.SetValue("11")
 
         self.colorBtn = wx.Button(self, label="Font color", size = (120,25))
         
@@ -451,7 +471,7 @@ class MyFrame1 ( wx.Frame ):
         self.ItalicBtn = wx.ToggleButton(self, label="Italic", size = (120,25))
         
         #ADD TO BAG SIZER
-        self.bagSizer3.Add(self.text, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer3.Add(self.lenslabel, pos=(0 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.FontBtn, pos=(1 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.SizeBtn, pos=(1 , 1 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.BoldBtn, pos=(2 , 0 ), flag=wx.ALL, border= 5)
@@ -465,6 +485,11 @@ class MyFrame1 ( wx.Frame ):
         self.Layout()
 
     def verb_inst_rightClick( self, event, id ):
+        self.bagSizer2.Clear(True)
+        self.bagSizer3.Clear(True)
+        
+        self.line2.Hide()
+        self.line3.Hide()
         
         """if id in self.button_dict:
           self.button_dict[id].Destroy()"""
@@ -502,7 +527,7 @@ class MyFrame1 ( wx.Frame ):
 
               self.Layout()
             
-            if col1 == 1:
+            if col1 == 0:
                 self.row -=1
             self.normal_case = True
 
@@ -511,7 +536,7 @@ class MyFrame1 ( wx.Frame ):
         self.n += 1
         self.noun_inst = wx.Button( self, id = self.n, label = "noun", size = wx.DefaultSize )
         if self.normal_case:
-            self.bagSizer1.Add(self.noun_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+            self.bagSizer1.Add(self.noun_inst, pos=(self.row , 0 ), flag=wx.ALL, border=5)
             self.row +=1
             
         else:
@@ -532,51 +557,53 @@ class MyFrame1 ( wx.Frame ):
         self.line2.Show()
         
         # row 1
-        self.text1 = wx.StaticText(self, -1, "Gender")
+        self.ntextGender = wx.StaticText(self, -1, "Gender")
         
-        self.m_button1 = wx.ToggleButton( self, wx.ID_ANY, u"Feminine")
-        self.m_button1.SetValue(True)
+        self.nbuttonF = wx.ToggleButton( self, wx.ID_ANY, u"Feminine")
+        self.nbuttonF.SetValue(True)
         
-        self.m_button2 = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
-        self.m_button2.SetValue(True)
+        self.nbuttonM = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
+        self.nbuttonM.SetValue(True)
         
         
         # row 2
-        self.text2 = wx.StaticText(self, -1, "Number")
+        self.ntextNum = wx.StaticText(self, -1, "Number")
         
-        self.m_button3 = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
-        self.m_button3.SetValue(True)
+        self.nbuttonSin = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
+        self.nbuttonSin.SetValue(True)
         
-        self.m_button4 = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
-        self.m_button4.SetValue(True)
+        self.nbuttonPl = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
+        self.nbuttonPl.SetValue(True)
         
         # row 3
-        self.text3 = wx.StaticText(self, -1, "Foreign")
-        self.m_button5 = wx.ToggleButton( self, wx.ID_ANY, u"yes")
-        self.m_button5.SetValue(True)
+        self.ntextForeign = wx.StaticText(self, -1, "Foreign")
+        self.nbuttonForeign = wx.ToggleButton( self, wx.ID_ANY, u"yes")
+        self.nbuttonForeign.SetValue(True)
         
-        self.bagSizer2.Add(self.text1, pos=(0 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button1, pos=(0 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button2, pos=(0 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.ntextGender, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.nbuttonF, pos=(0 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.nbuttonM, pos=(0 , 2 ), flag=wx.ALL, border= 5)
       
-        self.bagSizer2.Add(self.text2, pos=(1 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button3, pos=(1 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button4, pos=(1 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.ntextNum, pos=(1 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.nbuttonSin, pos=(1 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.nbuttonPl, pos=(1 , 2 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text3, pos=(2 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button5, pos=(2 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.ntextForeign, pos=(2 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.nbuttonForeign, pos=(2 , 1 ), flag=wx.ALL, border= 5)
         
          #line
         self.line3.Show()
         
-        #lens
-        self.text = wx.StaticText(self, wx.ID_ANY, "lens")
+         #lens
+        self.lenslabel = wx.StaticText(self, wx.ID_ANY, "lens")
         
         fonts = ['Arial','Calibri', 'Times New Roman'] 
         self.FontBtn = wx.ComboBox(self,choices = fonts, size = (180,25))
+        self.FontBtn.SetValue("Arial")
         
         fonts_size = ['6','7','8','9','10','11', '12', '13', '14', '15', '16','17','18','19', '20','28','36','48', '72']
         self.SizeBtn = wx.ComboBox(self,choices = fonts_size, size = (60,25))
+        self.SizeBtn.SetValue("11")
 
         self.colorBtn = wx.Button(self, label="Font color", size = (120,25))
         
@@ -587,7 +614,7 @@ class MyFrame1 ( wx.Frame ):
         self.ItalicBtn = wx.ToggleButton(self, label="Italic", size = (120,25))
         
         #ADD TO BAG SIZER
-        self.bagSizer3.Add(self.text, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer3.Add(self.lenslabel, pos=(0 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.FontBtn, pos=(1 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.SizeBtn, pos=(1 , 1 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.BoldBtn, pos=(2 , 0 ), flag=wx.ALL, border= 5)
@@ -597,9 +624,16 @@ class MyFrame1 ( wx.Frame ):
 
         self.colorBtn.Bind(wx.EVT_BUTTON, self.onColorDlg)
         self.bgcolorBtn.Bind(wx.EVT_BUTTON, self.onColorDlg)
+        
         self.Layout()
     
     def noun_inst_rightClick( self, event, id ):
+        self.bagSizer2.Clear(True)
+        self.bagSizer3.Clear(True)
+        
+        self.line2.Hide()
+        self.line3.Hide()
+        
         j= -1
         for x in self.button_dict.keys():
             j+=1
@@ -633,7 +667,7 @@ class MyFrame1 ( wx.Frame ):
               print(self.position)
 
               self.Layout()
-            if col1 == 1:
+            if col1 == 0:
                 self.row -=1
             self.normal_case = True
         """if id in self.button_dict:
@@ -643,7 +677,7 @@ class MyFrame1 ( wx.Frame ):
         self.n += 1
         self.adj_inst = wx.Button( self, id = self.n, label = "adjective", size = wx.DefaultSize )
         if self.normal_case:
-            self.bagSizer1.Add(self.adj_inst, pos=(self.row , 1 ), flag=wx.ALL, border=5)
+            self.bagSizer1.Add(self.adj_inst, pos=(self.row , 0 ), flag=wx.ALL, border=5)
             self.row +=1
         else:
             self.bagSizer1.Add(self.adj_inst, pos=(self.add_row , 2), flag=wx.ALL, border=5)
@@ -663,63 +697,65 @@ class MyFrame1 ( wx.Frame ):
         self.line2.Show()
         
         # row 1
-        self.text1 = wx.StaticText(self, -1, "Gender")
+        self.adjtextGender = wx.StaticText(self, -1, "Gender")
         
-        self.m_button1 = wx.ToggleButton( self, wx.ID_ANY, u"Feminine")
-        self.m_button1.SetValue(True)
+        self.adjbuttonF = wx.ToggleButton( self, wx.ID_ANY, u"Feminine")
+        self.adjbuttonF.SetValue(True)
         
-        self.m_button2 = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
-        self.m_button2.SetValue(True)
+        self.adjbuttonM = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
+        self.adjbuttonM.SetValue(True)
 
         # row 2
-        self.text2= wx.StaticText(self, -1, "Number")
+        self.adjtextNum= wx.StaticText(self, -1, "Number")
         
-        self.m_button3 = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
-        self.m_button3.SetValue(True)
+        self.adjbuttonSin = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
+        self.adjbuttonSin.SetValue(True)
         
-        self.m_button4 = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
-        self.m_button4.SetValue(True)
+        self.adjbuttonPl = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
+        self.adjbuttonPl.SetValue(True)
         
         # row 3
-        self.text3= wx.StaticText(self, -1, "Degree")
+        self.adjtextDegree= wx.StaticText(self, -1, "Degree")
         
-        self.m_button5 = wx.ToggleButton( self, wx.ID_ANY, u"Cmp")
-        self.m_button5.SetValue(True)
+        self.adjbuttonCmp = wx.ToggleButton( self, wx.ID_ANY, u"Cmp")
+        self.adjbuttonCmp.SetValue(True)
         
-        self.m_button6 = wx.ToggleButton( self, wx.ID_ANY, u"Abs")
-        self.m_button6.SetValue(True)    
+        self.adjbuttonAbs = wx.ToggleButton( self, wx.ID_ANY, u"Abs")
+        self.adjbuttonAbs.SetValue(True)    
         
         # row 4
-        self.text4 = wx.StaticText(self, -1, "Foreign")
-        self.m_button7 = wx.ToggleButton( self, wx.ID_ANY, u"yes" )
-        self.m_button7.SetValue(True)
+        self.adjtextForeign = wx.StaticText(self, -1, "Foreign")
+        self.adjbuttonForeign = wx.ToggleButton( self, wx.ID_ANY, u"yes" )
+        self.adjbuttonForeign.SetValue(True)
         
-        self.bagSizer2.Add(self.text1, pos=(0 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button1, pos=(0 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button2, pos=(0 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjtextGender, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonF, pos=(0 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonM, pos=(0 , 2 ), flag=wx.ALL, border= 5)
       
-        self.bagSizer2.Add(self.text2, pos=(1 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button3, pos=(1 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button4, pos=(1 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjtextNum, pos=(1 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonSin, pos=(1 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonPl, pos=(1 , 2 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text3, pos=(2 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button5, pos=(2 , 1 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button6, pos=(2 , 2 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjtextDegree, pos=(2 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonCmp, pos=(2 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonAbs, pos=(2 , 2 ), flag=wx.ALL, border= 5)
         
-        self.bagSizer2.Add(self.text4, pos=(3 , 0 ), flag=wx.ALL, border= 5)
-        self.bagSizer2.Add(self.m_button7, pos=(3 , 1 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjtextForeign, pos=(3 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer2.Add(self.adjbuttonForeign, pos=(3 , 1 ), flag=wx.ALL, border= 5)
         
          #line
         self.line3.Show()
         
         #lens
-        self.text = wx.StaticText(self, wx.ID_ANY, "lens")
+        self.lenslabel = wx.StaticText(self, wx.ID_ANY, "lens")
         
         fonts = ['Arial','Calibri', 'Times New Roman'] 
         self.FontBtn = wx.ComboBox(self,choices = fonts, size = (180,25))
+        self.FontBtn.SetValue("Arial")
         
         fonts_size = ['6','7','8','9','10','11', '12', '13', '14', '15', '16','17','18','19', '20','28','36','48', '72']
         self.SizeBtn = wx.ComboBox(self,choices = fonts_size, size = (60,25))
+        self.SizeBtn.SetValue("11")
 
         self.colorBtn = wx.Button(self, label="Font color", size = (120,25))
         
@@ -730,7 +766,7 @@ class MyFrame1 ( wx.Frame ):
         self.ItalicBtn = wx.ToggleButton(self, label="Italic", size = (120,25))
         
         #ADD TO BAG SIZER
-        self.bagSizer3.Add(self.text, pos=(0 , 0 ), flag=wx.ALL, border= 5)
+        self.bagSizer3.Add(self.lenslabel, pos=(0 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.FontBtn, pos=(1 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.SizeBtn, pos=(1 , 1 ), flag=wx.ALL, border= 5)
         self.bagSizer3.Add(self.BoldBtn, pos=(2 , 0 ), flag=wx.ALL, border= 5)
@@ -744,6 +780,12 @@ class MyFrame1 ( wx.Frame ):
         self.Layout()
 
     def adj_inst_rightClick( self, event, id ):
+        self.bagSizer2.Clear(True)
+        self.bagSizer3.Clear(True)
+        
+        self.line2.Hide()
+        self.line3.Hide()
+        
         j= -1
         for x in self.button_dict.keys():
             j+=1
@@ -777,7 +819,7 @@ class MyFrame1 ( wx.Frame ):
               print(self.position)
 
               self.Layout()
-            if col1 == 1:
+            if col1 == 0:
                 self.row -=1
             self.normal_case = True
         """if id in self.button_dict:
@@ -834,13 +876,20 @@ class MyFrame1 ( wx.Frame ):
             message = "Choose a file",
             #defaultDir = self.currentDirectory, 
             defaultFile = "",
-            wildcard = FileFilter3,
+            wildcard = FILEFILTER_PKL,
             style = wx.FD_OPEN | wx.FD_CHANGE_DIR
         )
 
         if dlg3.ShowModal() == wx.ID_OK:
-            htmlFilePath2 = dlg3.GetPath()
-            self.htmlwin2.LoadURL(htmlFilePath2)
+            # GetPath() returns just the path of the file
+            filepath = dlg3.GetPath()
+            stanzadoc = pickle.load(open(filepath, "rb"))
+            self.docfile["pkl"] = stanzadoc
+            self.docfile["html"] = stanza_annotation(stanzadoc)
+            self.docfile["dfromstanza"] = generate_d_from_stanza(stanzadoc)
+            self.htmlwin2.SetPage(self.docfile["html"],"")
+            
+            
         dlg3.Destroy()
 
 #--------------------------------------------------------------------------------------------------------------------------
