@@ -8,18 +8,24 @@
 ###########################################################################
 
 import wx
-import wx.lib.sized_controls as sc
+# import wx.lib.sized_controls as sc
 import wx.xrc
 import wx.html
 import wx.html2
-import os
-import os.path
-from shutil import copyfile
-import bs4
-from bs4 import BeautifulSoup
-from array import *
+# import os
+# import os.path
+# from shutil import copyfile
+# import bs4
+# from bs4 import BeautifulSoup
+# from array import *
 import functools
+import pickle
+# import stanza
+# nlp4ll module to deal with json and stanza
+from utils import stanza_annotation, generate_d_from_stanza
 
+FILEFILTER_PKL =    "Json files (*.pkl)|*.pkl|" \
+                "All files (*.*)|*.*"
 FileFilter3 =    "Json files (*.json)|*.json|" \
                 "All files (*.*)|*.*"
 
@@ -32,16 +38,18 @@ FileFilter =    "Css files (*.css)|*.css|" \
 class MyFrame1 ( wx.Frame ):
     
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1000, 700), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 1000, 700),
+                           style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         #menu bar
         self.menuBar = wx.MenuBar()
         self.fileMenu = wx.Menu()
         self.exitMenuItem = self.fileMenu.Append(wx.NewId(), "open",
-                                       "choose JSON file")
+                                       "choose a pickle file")
         self.menuBar.Append(self.fileMenu, "&File")
         self.Bind(wx.EVT_MENU, self.open_json, self.exitMenuItem)
         self.SetMenuBar(self.menuBar)
+        self.docfile = {}
       
         # 1st row of widgets
         self.sentence_button = wx.Button( self, wx.ID_ANY, u"Sentence", pos = (10,1), size = wx.DefaultSize )
@@ -393,7 +401,7 @@ class MyFrame1 ( wx.Frame ):
         self.m_button17 = wx.ToggleButton( self, wx.ID_ANY, u"Feminin")
         self.m_button17.SetValue(True)
         
-        self.m_button18 = wx.ToggleButton( self, wx.ID_ANY, u"Mascular")
+        self.m_button18 = wx.ToggleButton( self, wx.ID_ANY, u"Masculin")
         self.m_button18.SetValue(True)
         
         
@@ -834,13 +842,20 @@ class MyFrame1 ( wx.Frame ):
             message = "Choose a file",
             #defaultDir = self.currentDirectory, 
             defaultFile = "",
-            wildcard = FileFilter3,
+            wildcard = FILEFILTER_PKL,
             style = wx.FD_OPEN | wx.FD_CHANGE_DIR
         )
 
         if dlg3.ShowModal() == wx.ID_OK:
-            htmlFilePath2 = dlg3.GetPath()
-            self.htmlwin2.LoadURL(htmlFilePath2)
+            # GetPath() returns just the path of the file
+            filepath = dlg3.GetPath()
+            stanzadoc = pickle.load(open(filepath, "rb"))
+            self.docfile["pkl"] = stanzadoc
+            self.docfile["html"] = stanza_annotation(stanzadoc)
+            self.docfile["dfromstanza"] = generate_d_from_stanza(stanzadoc)
+            self.htmlwin2.SetPage(self.docfile["html"],"")
+            
+            
         dlg3.Destroy()
 
 #--------------------------------------------------------------------------------------------------------------------------
