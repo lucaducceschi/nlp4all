@@ -327,24 +327,24 @@ class MyFrame1 ( wx.Frame ):
         self.line2.Show()
         
         # row 1
-        self.text1 = wx.StaticText(self, -1, "Lemma")
+        self.vtextlemma = wx.StaticText(self, -1, "Lemma")
         self.textCtrl = wx.TextCtrl(self)
         
         #row2
-        self.text2 = wx.StaticText(self, -1, "Number")
+        self.vtextnum = wx.StaticText(self, -1, "Number")
         
-        self.m_button1 = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
-        self.m_button1.SetValue(True)
+        self.vbuttonsing = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
+        self.vbuttonsing.SetValue(True)
         
-        self.m_button2 = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
-        self.m_button2.SetValue(True)
+        self.vbuttonpl = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
+        self.vbuttonpl.SetValue(True)
        
         #textCtrl.SetSizerProps(expand=True)
         
         # row 3
-        self.text3= wx.StaticText(self, -1, "Person")
+        self.vtextpers= wx.StaticText(self, -1, "Person")
         
-        self.m_button3 = wx.ToggleButton( self, wx.ID_ANY, u"First" )
+        self.vbutton1st = wx.ToggleButton( self, wx.ID_ANY, u"First" )
         self.m_button3.SetValue(True)
         
         self.m_button4 = wx.ToggleButton( self, wx.ID_ANY, u"Second" )
