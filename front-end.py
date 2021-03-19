@@ -584,7 +584,10 @@ class MainWindow( wx.Frame ):
         # row 1
         self.ntextGender = wx.StaticText(self, -1, "Gender")
         
-        self.nbuttonF = wx.ToggleButton( self, wx.ID_ANY, u"Feminine")
+        self.n += 1
+        self.nbuttonF = wx.ToggleButton( self, id=self.n, label="Feminine")
+        nfid = self.nbuttonF.GetId()
+        self.button_dict["feminine" + str(nfid)]  = self.nbuttonF.GetValue()      
         # self.nbuttonF.Bind(wx.EVT_TOGGLEBUTTON, self.noun_handling)
        
         self.nbuttonF.SetValue(True)
@@ -922,10 +925,11 @@ class MainWindow( wx.Frame ):
     
     def noun_handling(self, event, id):
         # nouns = [(key,val) for key,val in self.docfile["dfromstanza"].items()]
-        self.button_dict[id] 
-        d = self.docfile["dfromstanza"]
-        pos = GetPos("NOUN", d)
-        print(pos.words)
+        # self.button_dict[id] 
+        # d = self.docfile["dfromstanza"]
+        # pos = GetPos("NOUN", d)
+        # print(pos.words)
+        print(self.button_dict.items())
         event.Skip()
         # nd = {"fem": [1,2,3,],
         #      "masc": [6,5,8]
