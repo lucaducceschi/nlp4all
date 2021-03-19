@@ -1,0 +1,3 @@
+# 18.03.2021 
+- Sevda: solve the Layout() problem; we don't need the frame to update at every click of a button
+- Luca: create data structure to keep track of changes in the toggle values and produce the css
