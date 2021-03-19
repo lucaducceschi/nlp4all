@@ -4,7 +4,8 @@ Created on Mon Feb 22 18:47:39 2021
 
 @author: luca
 """
-    
+import re    
+
 def stanza_annotation(doc_):
 
 #### TODO: eliminate &nbsp at the beginning of the sentence 
@@ -47,20 +48,24 @@ class GetPos():
   """new method: get_features
   class starts at zero 
   lemma should be list of comma separated values in a string and every lemma is found with a startswith"""
-  def __init__(self, dict_from_stanza):
+  def __init__(self, pos, dict_from_stanza):
+    self.pos = pos
     self.text = dict_from_stanza
-    self.words = GetPos.extract_verbs(self.text)
-    self.nwords = len(self.verbs)
+    self.words = GetPos.extract_pos(pos, self.text)
+    # self.nwords = len(self.verbs)
     
     # self.features = GetPos.refine_search()
 
   @classmethod
-  def extract_verbs(cls, dictionary):
+  def extract_pos(cls, pos, dictionary):
     cls.var1 = []
     for key,l_of_d in dictionary.items():
       for d in l_of_d: 
-        if d["upos"] =="VERB":
-          cls.var1.append((key+"-"+str(d["id"]), d["text"]))
+        try:
+            if d["upos"] == pos:
+                cls.var1.append((key+"-"+str(d["id"]), d["text"]))
+        except KeyError:
+            pass
     return cls.var1
   
   def refine_search(self, features):
