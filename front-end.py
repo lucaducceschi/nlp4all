@@ -12,6 +12,7 @@ import wx
 import wx.xrc
 import wx.html
 import wx.html2
+import wx.lib.inspection
 # import os
 # import os.path
 # from shutil import copyfile
@@ -944,6 +945,8 @@ class nlp_app(wx.App):
     def OnInit(self):
         self.frame = MainWindow(parent=None)
         self.frame.Show()
+        
+        wx.lib.inspection.InspectionTool().Show()
         return True
 
 #--------------------------------------------------------------------------------------------------------------------------
