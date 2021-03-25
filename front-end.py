@@ -23,7 +23,7 @@ import functools
 import pickle
 # import stanza
 # nlp4ll module to deal with json and stanza
-from utils import stanza_annotation, generate_d_from_stanza, GetPos
+from utils import stanza_annotation, generate_d_from_stanza, GetPos, filter_by_pos
 
 FILEFILTER_PKL =    "Json files (*.pkl)|*.pkl|" \
                 "All files (*.*)|*.*"
@@ -930,7 +930,15 @@ class MainWindow( wx.Frame ):
         # d = self.docfile["dfromstanza"]
         # pos = GetPos("NOUN", d)
         # print(pos.words)
-        print(self.button_dict.items())
+        
+        # print( self.button_dict.items())
+        # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
+        ids_of_nouns = filter_by_pos(self.docfile["dfromstanza"], "NOUN")
+        
+        # Todo : take the ids and send them to the javascript function that alters the page look (the lens)
+        # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
+
+        print(ids_of_nouns)
         event.Skip()
         # nd = {"fem": [1,2,3,],
         #      "masc": [6,5,8]

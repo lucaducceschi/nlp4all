@@ -6,6 +6,19 @@ Created on Mon Feb 22 18:47:39 2021
 """
 import re    
 
+def filter_by_pos(d,pos):
+  filtered =[]
+  for key,list_of_dictinaries in d.items():
+    for item in list_of_dictinaries:
+      try:
+        if item["upos"] == pos:
+          filtered.append(f"{key}_w{str(item['id'])}")
+      except KeyError:
+        pass
+  return filtered
+
+
+
 def stanza_annotation(doc_):
 
 #### TODO: eliminate &nbsp at the beginning of the sentence 
@@ -39,10 +52,10 @@ def generate_d_from_stanza(doc_):
         out.append(d_temp)
       else:
         out.append(d_temp)
-    d["sent_"+str(c)] = out
+    d["s"+str(c)] = out # modifies version
+    # d["sent_"+str(c)] = out ù previous version 
     c += 1
   return d
-
 
 class GetPos():
   """new method: get_features
