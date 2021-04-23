@@ -19,10 +19,10 @@ def filter_by_pos(d,pos):
 
 
 
-def stanza_annotation(doc_):
+def stanza_annotation(doc_, css_info=""):
 
 #### TODO: eliminate &nbsp at the beginning of the sentence 
-    new_txt='<html><head><meta charset="UTF-8"></head><body>'
+    new_txt=f'<html><head>{css_info}<meta charset="UTF-8"></head><body>'
     nsent=1
     
     for sent in doc_.sentences:

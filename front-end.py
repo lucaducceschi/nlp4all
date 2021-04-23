@@ -13,6 +13,9 @@ import wx.xrc
 import wx.html
 import wx.html2
 import wx.lib.inspection
+import os
+import sys
+
 # import os
 # import os.path
 # from shutil import copyfile
@@ -137,7 +140,7 @@ class MainWindow( wx.Frame ):
         self.button_dict = {}
         self.normal_case = True
         self.docfile = {}   
-        
+        self.noun_n_ids = []
     def OnQuit(self, e):
         self.Close()
 
@@ -933,12 +936,12 @@ class MainWindow( wx.Frame ):
         
         # print( self.button_dict.items())
         # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
-        ids_of_nouns = filter_by_pos(self.docfile["dfromstanza"], "NOUN")
-        
+        self.noun_n_ids = filter_by_pos(self.docfile["dfromstanza"], "NOUN")
+        # self.docfile["html"] = stanza_annotation(self.docfile["pkl"])
         # Todo : take the ids and send them to the javascript function that alters the page look (the lens)
         # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
-
-        print(ids_of_nouns)
+        # return ids_of_nouns
+        print(self.noun_n_ids)
         event.Skip()
         # nd = {"fem": [1,2,3,],
         #      "masc": [6,5,8]
