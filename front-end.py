@@ -15,6 +15,7 @@ import wx.html2
 import wx.lib.inspection
 import os
 import sys
+import cssutils
 
 # import os
 # import os.path
@@ -928,28 +929,25 @@ class MainWindow( wx.Frame ):
         dlg3.Destroy()
     
     def noun_handling(self, event, id):
-        # nouns = [(key,val) for key,val in self.docfile["dfromstanza"].items()]
-        # self.button_dict[id] 
-        # d = self.docfile["dfromstanza"]
-        # pos = GetPos("NOUN", d)
-        # print(pos.words)
         
-        # print( self.button_dict.items())
-        # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
-        self.noun_n_ids = filter_by_pos(self.docfile["dfromstanza"], "NOUN")
-        # self.docfile["html"] = stanza_annotation(self.docfile["pkl"])
-        # Todo : take the ids and send them to the javascript function that alters the page look (the lens)
-        # print(self.htmlwin2.RunScript("document.write('Hello from wx.Widgets!')"))
-        # return ids_of_nouns
+        self.noun_n_ids = filter_by_pos(self.docfile["dfromstanza"], "NOUN")      
         print(self.noun_n_ids)
-        event.Skip()
-        # nd = {"fem": [1,2,3,],
-        #      "masc": [6,5,8]
-        #      "sing" : [78,5,6]}
-    
-    # def noun_filter(self, event):
-    #     if self.nbuttonM.SetValue(True)
         
+        
+        
+        
+        event.Skip()
+
+    def pos_handling(self, event, pos):
+        
+        self.pos_ids = filter_by_pos(self.docfile["dfromstanza"], pos )      
+        print(self.pos_ids)
+        
+        
+        
+        
+        event.Skip()
+
         
 
 class nlp_app(wx.App):
