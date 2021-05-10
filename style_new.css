@@ -1,0 +1,98 @@
+.sentence {
+    background-color: white;
+    /* or rgb(189, 17, 152) */
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    /* or  italic  */
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    /* or bold */
+    }
+#sent_1_1 {
+    background-color: white;
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal
+    }
+#sent_1_2 {
+    background-color: pink;
+    color: purple;
+    font-size: 12px;
+    font-style: italic;
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold
+    }
+#sent_1_3 {
+    background-color: white;
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal
+    }
+#sent_2_1 {
+    background-color: pink;
+    color: purple;
+    font-size: 12px;
+    font-style: italic;
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold
+    }
+#sent_2_2 {
+    background-color: white;
+    /* or rgb(189, 17, 152) */
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    /* or  italic  */
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    /* or bold */
+    }
+#sent_2_3 {
+    background-color: white;
+    /* or rgb(189, 17, 152) */
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    /* or  italic  */
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    /* or bold */
+    }
+#sent_3_1 {
+    background-color: white;
+    /* or rgb(189, 17, 152) */
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    /* or  italic  */
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    /* or bold */
+    }
+#sent_3_2 {
+    background-color: white;
+    /* or rgb(189, 17, 152) */
+    color: black;
+    font-size: 11px;
+    font-style: normal;
+    /* or  italic  */
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    /* or bold */
+    }
+#sent_3_3 {
+    background-color: pink;
+    /* or rgb(189, 17, 152) */
+    color: purple;
+    font-size: 12px;
+    font-style: italic;
+    /* or  italic  */
+    font-family: "Times New Roman", Times, serif;
+    font-weight: bold;
+    /* or bold */
+    }
