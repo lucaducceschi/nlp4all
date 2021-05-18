@@ -141,7 +141,10 @@ class MainWindow( wx.Frame ):
         self.button_dict = {}
         self.normal_case = True
         self.docfile = {}   
-        self.noun_n_ids = []
+        self.noun_n_ids = {}
+        self.buttons_ids = []
+        
+        
     def OnQuit(self, e):
         self.Close()
 
@@ -562,7 +565,8 @@ class MainWindow( wx.Frame ):
         
         self.n += 1
         key = "NOUN"+ str(self.n)
-        self.noun_inst = wx.Button( self, id = self.n, label = "noun", size = wx.DefaultSize )
+        self.noun_n_ids[key] = {}
+        self.noun_inst = wx.Button( self, id = wx.ID_ANY, label = "noun", size = wx.DefaultSize )
         if self.normal_case:
             self.bagSizer1.Add(self.noun_inst, pos=(self.row , 0 ), flag=wx.ALL, border=5)
             self.row +=1
@@ -574,46 +578,63 @@ class MainWindow( wx.Frame ):
         self.noun_inst.Bind( wx.EVT_BUTTON, self.noun_inst_onClick )
         func = functools.partial(self.noun_inst_rightClick , id = self.n)
         self.noun_inst.Bind(wx.EVT_RIGHT_DOWN, func)
-        func_id = functools.partial(self.noun_handling , id = key)
-        self.noun_inst.Bind(wx.EVT_BUTTON, func_id)
+        # func_id = functools.partial(self.noun_handling , id = key)
+        # self.noun_inst.Bind(wx.EVT_BUTTON, func_id) 
         self.normal_case = True
         self.Layout() #to update frame
         event.Skip()
     
     def noun_inst_onClick( self, event ):
+  
+        e= event.GetEventObject()
+        e_id = e.GetId() # gets the id from the Noun button
+        self.noun_n_ids[e_id] = {} # creates a dict entry 
+        
         self.bagSizer2.Clear(True)
         self.bagSizer3.Clear(True)
         
         self.line2.Show()
-        
-        # row 1
-        self.ntextGender = wx.StaticText(self, -1, "Gender")
-        
         self.n += 1
+        
+        # row 1: Gender
+        self.ntextGender = wx.StaticText(self, -1, "Gender")
+        # Feminine
         self.nbuttonF = wx.ToggleButton( self, id=self.n, label="Feminine")
-        nfid = self.nbuttonF.GetId()
-        self.button_dict["feminine" + str(nfid)]  = self.nbuttonF.GetValue()      
-        # self.nbuttonF.Bind(wx.EVT_TOGGLEBUTTON, self.noun_handling)
-       
         self.nbuttonF.SetValue(True)
-        
+        # storing value for feminine in dictionary
+        ##### The lambda here is used to send a second argument to the OnToggle function. There might be a better way, but it works now. 
+        self.nbuttonF.Bind(wx.EVT_TOGGLEBUTTON, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        self.noun_n_ids[e_id][self.nbuttonF.GetId()] = ("feminine" ,  self.nbuttonF.GetValue())
+        # Masculine
         self.nbuttonM = wx.ToggleButton( self, wx.ID_ANY, u"Masculine")
-        self.nbuttonM.SetValue(True)
+        self.nbuttonM.SetValue(True) 
+        # storing value for masculine in dictionary
+        self.nbuttonM.Bind(wx.EVT_TOGGLEBUTTON, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        self.noun_n_ids[e_id][self.nbuttonM.GetId()] = ("feminine" ,self.nbuttonM.GetValue())
+
         
-        
-        # row 2
+        # row 2: Number
         self.ntextNum = wx.StaticText(self, -1, "Number")
-        
         self.nbuttonSin = wx.ToggleButton( self, wx.ID_ANY, u"Singular")
         self.nbuttonSin.SetValue(True)
-        
+        # storing value for singular in dictionary
+        self.nbuttonSin.Bind(wx.EVT_TOGGLEBUTTON, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        self.noun_n_ids[e_id][self.nbuttonSin.GetId()] = ("singular" ,self.nbuttonSin.GetValue())
+            
         self.nbuttonPl = wx.ToggleButton( self, wx.ID_ANY, u"Plural")
         self.nbuttonPl.SetValue(True)
+        # storing value for plural in dictionary
+        self.nbuttonPl.Bind(wx.EVT_TOGGLEBUTTON, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        self.noun_n_ids[e_id][self.nbuttonPl.GetId()] = ("plural" ,self.nbuttonPl.GetValue())
         
-        # row 3
+        
+        # row 3: Foreign
         self.ntextForeign = wx.StaticText(self, -1, "Foreign")
         self.nbuttonForeign = wx.ToggleButton( self, wx.ID_ANY, u"yes")
         self.nbuttonForeign.SetValue(True)
+        # storing value for foreign in dictionary
+        self.nbuttonForeign.Bind(wx.EVT_TOGGLEBUTTON, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        self.noun_n_ids[e_id][self.nbuttonForeign.GetId()] = ("plural" ,self.nbuttonForeign.GetValue())
         
         self.bagSizer2.Add(self.ntextGender, pos=(0 , 0 ), flag=wx.ALL, border= 5)
         self.bagSizer2.Add(self.nbuttonF, pos=(0 , 1 ), flag=wx.ALL, border= 5)
@@ -633,12 +654,18 @@ class MainWindow( wx.Frame ):
         self.lenslabel = wx.StaticText(self, wx.ID_ANY, "lens")
         
         fonts = ['Arial','Calibri', 'Times New Roman'] 
-        self.FontBtn = wx.ComboBox(self,choices = fonts, size = (180,25))
+        self.FontBtn = wx.ComboBox(self, id=wx.ID_ANY, choices = fonts, size = (180,25))
         self.FontBtn.SetValue("Arial")
+        
+        # The combobox binding to the ontoggle function returns a key error
+        #self.FontBtn.Bind(wx.EVT_COMBOBOX, lambda evt, temp=e_id: self.OnToggle(evt, temp))
+        # self.FontBtn.Bind(wx.EVT_COMBOBOX, self.prova)
         
         fonts_size = ['6','7','8','9','10','11', '12', '13', '14', '15', '16','17','18','19', '20','28','36','48', '72']
         self.SizeBtn = wx.ComboBox(self,choices = fonts_size, size = (60,25))
         self.SizeBtn.SetValue("11")
+
+
 
         self.colorBtn = wx.Button(self, label="Font color", size = (120,25))
         
@@ -931,7 +958,7 @@ class MainWindow( wx.Frame ):
     def noun_handling(self, event, id):
         
         self.noun_n_ids = filter_by_pos(self.docfile["dfromstanza"], "NOUN")      
-        print(self.noun_n_ids)
+        print(id)
         
         
         
@@ -948,14 +975,25 @@ class MainWindow( wx.Frame ):
         
         event.Skip()
 
+    def OnToggle(self, event, main_e_id):
+            e = event.GetEventObject()
+            Id = e.GetId()
+            val = e.GetValue()
+            # print(self.noun_n_ids[Id])
+            # print("Button Pressed:",Id)
+            # print(val)
+            self.noun_n_ids[main_e_id][Id] = (self.noun_n_ids[main_e_id][Id][0], val)
+            print(self.noun_n_ids)
+    
+    def prova(self, event):
+        print(event)
         
-
 class nlp_app(wx.App):
     def OnInit(self):
         self.frame = MainWindow(parent=None)
         self.frame.Show()
         
-        wx.lib.inspection.InspectionTool().Show()
+        # wx.lib.inspection.InspectionTool().Show()
         return True
 
 #--------------------------------------------------------------------------------------------------------------------------
