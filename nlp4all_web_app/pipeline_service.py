@@ -17,9 +17,9 @@ def health():
 
 @app.route("/listtexts")
 def listtexts():
-    return "\n".join(os.listdir("texts"))
-#    return {"mobydick":{"title": "Moby Dick" , 
-#                        "author": "Melville"}}
+    return json.load(open("texts/texts.json"))
+
+
 
 @app.route("/getdocument")
 def getdocument():
