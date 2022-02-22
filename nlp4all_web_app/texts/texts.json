@@ -1,5 +1,7 @@
-{"ataleoftwocities":{"author": "Charles Dickens",
-					 "title" : "A tale of two cities"},
-"dracula":{"author": "Bram Stocker",
-			"title" : "Dracula"}
+{"pavese_il_compagno":{"author": "Cesare Pavese",
+					 "title" : "Il Compagno"},
+"pirandello_il_fu_mattia_pascal":{"author": "Luigi Pirandello",
+			"title" : "Il fu Mattia Pascal"},
+"salgari_jolanda_la_figlia_del_corsaro_nero":{"author": "Emilio Salgari",
+			"title" : "Jolanda, La Figlia del Corsaro Nero"}
 					 }

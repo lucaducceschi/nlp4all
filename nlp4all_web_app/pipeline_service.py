@@ -19,7 +19,9 @@ def health():
 def listtexts():
     return json.load(open("texts/texts.json"))
 
-
+@app.route("/lstextfolder")
+def lstextfolder():
+    return "\n".join(i for i in os.listdir("texts") if os.path.isdir(f"texts/{i}"))
 
 @app.route("/getdocument")
 def getdocument():
@@ -27,7 +29,7 @@ def getdocument():
 
     fname = request.args.get("doc")
     path = f"texts/{fname}/{fname}.html"
-    return open(path).read()
+    return open(path, encoding="utf8").read()
     #return open(f"texts/{doc}").read()
 
 @app.route("/lstexts")
@@ -43,6 +45,18 @@ def gettokeninfo():
     sentid = tokenid.split("_")[0]
     d = json.load(open(path))
     return d[sentid][tokenid]
+
+@app.route("/getfilter")
+def GetFilter(json_):
+    d = json.loads(json_)
+    
+    
+    
+    return ajsonwithids
+    
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
