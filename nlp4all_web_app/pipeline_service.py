@@ -21,7 +21,8 @@ def listtexts():
 
 @app.route("/lstextfolder")
 def lstextfolder():
-    return "\n".join(i for i in os.listdir("texts") if os.path.isdir(f"texts/{i}"))
+    return "\n".join([i for i in os.listdir("texts") if os.path.isdir(f"texts/{i}")])
+
 
 @app.route("/getdocument")
 def getdocument():
@@ -46,18 +47,33 @@ def gettokeninfo():
     d = json.load(open(path))
     return d[sentid][tokenid]
 
-@app.route("/getfilter")
-def GetFilter(json_):
-    d = json.loads(json_)
-    
-    
-    
-    return ajsonwithids
-    
+@app.route("/getfilter",methods=['POST'])
+def getfilter():
+    request_data = request.get_json()
+    language = request_data['language']
+    return language
 
+@app.route('/json_example', methods=['POST'])
+def json_example():
+    request_data = request.get_json()
 
+    language = request_data['language']
+    framework = request_data['framework']
 
+    # two keys are needed because of the nested object
+    python_version = request_data['version_info']['python']
 
+    # an index is needed because of the array
+    example = request_data['examples'][0]
+
+    boolean_test = request_data['boolean_test']
+
+    return '''
+           The language value is: {}
+           The framework value is: {}
+           The Python version is: {}
+           The item at index 0 in the example list is: {}
+           The boolean value is: {}'''.format(language, framework, python_version, example, boolean_test)
 if __name__ == "__main__":
     app.run(debug=True)
 
