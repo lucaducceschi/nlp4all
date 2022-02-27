@@ -1,0 +1,9 @@
+<app-side-panel-document-list
+  [documentList]="documentList"
+  (documentListSelectionChangeEvent)="documentListSelectionChange($event)"
+  (removeDocumentFromListEvent)="removeDocumentFromList($event)"
+  class="side-panel-document-list"
+></app-side-panel-document-list>
+<button mat-flat-button class="add-document-button" color="warn">
+  Aggiungi testo
+</button>

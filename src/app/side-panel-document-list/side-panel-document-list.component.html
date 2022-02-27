@@ -1,0 +1,22 @@
+<mat-selection-list
+  (selectionChange)="documentListSelectionChange($event)"
+  class="document-list"
+  multiple="false"
+  #documentSelected
+>
+  <mat-list-option
+    *ngFor="let document of documentList"
+    [value]="document"
+    class="document-list-item"
+    role="listitem"
+  >
+    <span>{{ document.title }}</span>
+    <button
+      mat-icon-button
+      class="document-list-item-close-button"
+      (click)="removeDocumentFromList(document)"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-list-option>
+</mat-selection-list>
