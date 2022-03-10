@@ -47,11 +47,22 @@ def gettokeninfo():
     d = json.load(open(path))
     return d[sentid][tokenid]
 
-@app.route("/getfilter",methods=['POST'])
-def getfilter():
+@app.route("/getpos",methods=['POST'])
+def getpos():
+    out = []
     request_data = request.get_json()
-    language = request_data['language']
-    return language
+    pos = request_data["pos"]
+    fname =request_data["id_text"]
+    text = json.load(open(f"texts/{fname}/{fname}.json"))
+    for s_id, s_dict in text.items():
+        for w_id, w_dict in s_dict.items():
+            try:
+                if w_dict["upos"] == pos:
+                    out.append(w_id)
+            except KeyError:
+                pass
+    return " ".join(out)
+    #return text
 
 if __name__ == "__main__":
     app.run(debug=True)
