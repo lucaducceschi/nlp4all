@@ -1,3 +1,3 @@
-<mat-card class="document-card">
+<mat-card class="document-card" *ngIf="selectedDocument != ''">
   <div class="document-body" [innerHtml]="selectedDocument"></div>
 </mat-card>

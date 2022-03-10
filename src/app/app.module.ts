@@ -16,6 +16,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SidePanelDocumentListComponent } from './side-panel-document-list/side-panel-document-list.component';
+import { HttpClientModule } from '@angular/common/http';
+import { MatDialogModule } from '@angular/material/dialog';
+import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.component';
 
 @NgModule({
   declarations: [
@@ -27,16 +30,19 @@ import { SidePanelDocumentListComponent } from './side-panel-document-list/side-
     PanelWrapperComponent,
     DocumentComponent,
     SidePanelDocumentListComponent,
+    AddTextsDialogComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     MatToolbarModule,
     MatCardModule,
     MatListModule,
     MatButtonModule,
     MatIconModule,
+    MatDialogModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

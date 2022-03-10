@@ -6,9 +6,11 @@
 >
   <mat-list-option
     *ngFor="let document of documentList"
+    [disableRipple]="true"
     [value]="document"
     class="document-list-item"
     role="listitem"
+    [title]="document.title"
   >
     <span>{{ document.title }}</span>
     <button

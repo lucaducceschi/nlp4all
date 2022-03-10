@@ -25,6 +25,9 @@
   align-self: center !important;
   flex-grow: 2 !important;
   font-size: 0.88em !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .document-list-item-close-button {
