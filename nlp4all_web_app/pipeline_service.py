@@ -51,7 +51,7 @@ def gettokeninfo():
 def getpos():
     out = []
     request_data = request.get_json()
-    pos = request_data["pos"]
+    pos = request_data["upos"]
     fname =request_data["id_text"]
     text = json.load(open(f"texts/{fname}/{fname}.json"))
     for s_id, s_dict in text.items():
@@ -63,6 +63,24 @@ def getpos():
                 pass
     return " ".join(out)
     #return text
+
+@app.route("/getfilter", methods=["POST"])
+def getfilter():
+    
+    out = []
+    request_data = request.get_json()
+    keys = {key:val for key,val in request_data.items() if val and key !="id_text" }
+    fname =request_data["id_text"]
+    text = json.load(open(f"texts/{fname}/{fname}.json"))
+    for s_id, s_dict in text.items():
+        for w_id, w_dict in s_dict.items():
+            if all((key,val) in w_dict.items() for key,val in keys.items()):
+                out.append(w_id)
+                print(w_dict["text"])
+     
+    return " ".join(out)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
