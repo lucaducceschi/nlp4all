@@ -1,14 +1,21 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-document',
   templateUrl: './document.component.html',
   styleUrls: ['./document.component.scss'],
 })
-export class DocumentComponent implements OnInit {
+export class DocumentComponent implements OnChanges {
   @Input() selectedDocument: string = '';
 
-  constructor() {}
+  safeSelectedDocument: SafeHtml;
 
-  ngOnInit(): void {}
+  constructor(private sanitizer: DomSanitizer) {}
+
+  ngOnChanges() {
+    this.safeSelectedDocument = this.sanitizer.bypassSecurityTrustHtml(
+      this.selectedDocument
+    );
+  }
 }

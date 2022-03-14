@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { aDocument, Document } from '../models/document';
 import { MatDialog } from '@angular/material/dialog';
 import { AddTextsDialogComponent } from '../add-texts-dialog/add-texts-dialog.component';
 import { DocumentService } from '../services/document.service';
 import { MatSelectionList } from '@angular/material/list';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-side-panel',
@@ -42,13 +43,20 @@ export class SidePanelComponent {
       );
 
       const dialogRef = this.dialog.open(AddTextsDialogComponent, {
-        data: documentList,
+        data: documentList.filter(
+          (document) =>
+            !_.some(
+              this.documentList,
+              (documentA) => document.docId == documentA.docId
+            )
+        ),
       });
 
       dialogRef.afterClosed().subscribe((data: MatSelectionList) => {
-        this.documentList = data.selectedOptions.selected.map(
-          (option) => option.value
-        );
+        const documentsSelected: Document[] =
+          data.selectedOptions?.selected.map((option) => option.value) || [];
+
+        this.documentList.push(...documentsSelected);
       });
     });
   }

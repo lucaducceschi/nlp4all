@@ -19,6 +19,9 @@ import { SidePanelDocumentListComponent } from './side-panel-document-list/side-
 import { HttpClientModule } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.component';
+import { FilterWrapperComponent } from './filter-wrapper/filter-wrapper.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   declarations: [
@@ -31,6 +34,7 @@ import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.com
     DocumentComponent,
     SidePanelDocumentListComponent,
     AddTextsDialogComponent,
+    FilterWrapperComponent,
   ],
   imports: [
     BrowserModule,
@@ -43,6 +47,8 @@ import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.com
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
+    MatTabsModule,
+    ScrollingModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
