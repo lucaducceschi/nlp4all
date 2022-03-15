@@ -22,6 +22,8 @@ import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.com
 import { FilterWrapperComponent } from './filter-wrapper/filter-wrapper.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { FilterMainPanelComponent } from './filter-main-panel/filter-main-panel.component';
+import { FilterSidePanelComponent } from './filter-side-panel/filter-side-panel.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +37,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     SidePanelDocumentListComponent,
     AddTextsDialogComponent,
     FilterWrapperComponent,
+    FilterMainPanelComponent,
+    FilterSidePanelComponent,
   ],
   imports: [
     BrowserModule,
