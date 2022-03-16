@@ -10,7 +10,7 @@ punctuation = set(""")⁄;(€!‘¨·£‰‐_§⁂∴<~«°¦%•¶`?\\—»�
 path = sys.argv[1]
 path = re.sub(r"\\", "/", path)
 
-nlpit = stanza.Pipeline("it", dir=sys.argv[2], use_gpu=True)
+nlpit = stanza.Pipeline("it", dir=sys.argv[2], use_gpu=True, pos_batch_size=1000, depparse_batch_size=400)
 try:
     string = open(path, "r", encoding = "utf8").read().strip()
 except UnicodeDecodeError:
