@@ -24,6 +24,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FilterMainPanelComponent } from './filter-main-panel/filter-main-panel.component';
 import { FilterSidePanelComponent } from './filter-side-panel/filter-side-panel.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { FilterSidePanelComponent } from './filter-side-panel/filter-side-panel.
     MatDialogModule,
     MatTabsModule,
     ScrollingModule,
+    DragDropModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

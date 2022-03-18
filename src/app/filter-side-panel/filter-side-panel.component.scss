@@ -6,6 +6,19 @@
   margin-bottom: 12px;
 }
 
-.add-document-button {
-  width: 100%;
+.pos-button {
+  width: 100% !important;
+}
+
+:host ::ng-deep .mat-list-base {
+  padding-top: 0;
+}
+
+:host ::ng-deep .mat-list-item-content {
+  padding: 0 !important;
+  align-items: normal;
+}
+
+:host ::ng-deep .mat-list-item {
+  height: auto !important;
 }

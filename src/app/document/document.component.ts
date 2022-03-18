@@ -14,7 +14,6 @@ export class DocumentComponent implements OnChanges {
   constructor(private sanitizer: DomSanitizer) {}
 
   ngOnChanges() {
-    console.log(this.selectedDocument);
     this.safeSelectedDocument = this.sanitizer.bypassSecurityTrustHtml(
       this.selectedDocument
     );

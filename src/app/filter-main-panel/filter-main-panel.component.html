@@ -1,1 +1,10 @@
-
+<div class="boundary">
+  <div
+    *ngFor="let card of filterCards"
+    cdkDragBoundary=".boundary"
+    class="box"
+    cdkDrag
+  >
+    {{ card.filterRequest.upos }}
+  </div>
+</div>
