@@ -1,0 +1,8 @@
+# chiamata get_filter() deve restituire anche conto totale della POS che viene richiesta (es: ?/456)
+# split lo span di MWT in modo da avere <span id=s_03_w_06-07><span id =s_03_w_06><span id =s_03_w_07><\span><\span><\span>
+# aggiungere servizio post get_sentences(), sempre POST, che restituisce:
+  - id di frasi di un certo tipo (int, decl, excl)
+  - id di frasi di un certo tipo che contengono certi id di parole (nel json del post ci sono due campi: tipo_frase, lista_id)
+# aggiugere servizio post get_ners() che restituisca gli id delle named entities
+# aggiustare punteggiatura nell'html
+# juxtaposition() prende parametri pos e una distanza tra i tipi di pos e restituisce gli id  
