@@ -72,13 +72,79 @@ def getfilter():
     keys = {key:val for key,val in request_data.items() if val and key !="id_text" }
     fname =request_data["id_text"]
     text = json.load(open(f"texts/{fname}/{fname}.json"))
-    for s_id, s_dict in text.items():
-        for w_id, w_dict in s_dict.items():
+    
+    for s_id, s_properties in text.items():
+        for w_id, w_dict in s_properties["dict"].items():
             if all((key,val) in w_dict.items() for key,val in keys.items()):
                 out.append(w_id)
                 print(w_dict["text"])
      
     return " ".join(out)
+
+
+@app.route("/getsentence", methods=["POST"])
+def getsentence():
+    """It accepts a json with two possible fields: 'stype' (a list of sentence types) and 'word_ids' (a list of ids 
+    of words sent by another filter) and returns the ids of the matching sentences as a string """
+    out = {"s_ids": []}
+    request_data = request.get_json()
+    keys = {key:val for key,val in request_data.items() if val and key !="id_text" }
+    fname =request_data["id_text"]
+    text = json.load(open(f"texts/{fname}/{fname}.json"))
+
+    if "word_ids" in keys:
+        for s_id, s_properties in text.items():
+            if s_properties["stype"] in keys["s_types"]:
+                words_in_sents = set(keys["word_ids"]).intersection(s_properties["dict"])
+                if words_in_sents:
+                    out["s_ids"].append(s_id)
+
+                
+                
+    
+    else:
+        for s_id, s_properties in text.items():
+            if s_properties["stype"] in keys["s_types"]:
+                out["s_ids"].append(s_id)
+
+
+
+    return " ".join(out["s_ids"])
+
+
+
+
+@app.route("/getsequence", methods=["POST"])
+def getsequence():
+    out = {}
+    request_data = request.get_json()
+    keys = {key:val for key,val in request_data.items() if val and key !="id_text" }
+    fname =request_data["id_text"]
+    text = json.load(open(f"texts/{fname}/{fname}.json"))
+    distance = request_data["distance"]
+
+    a = {s.split("_")[0]:[] for s in request_data["after"]}
+    for s in request_data["after"]:
+        key,val = s.split("_")
+        a[key].append(int(val[1:]))
+
+    b = {s.split("_")[0]:[] for s in request_data["before"]}
+    for s in request_data["before"]:
+        key,val = s.split("_")
+        b[key].append(int(val[1:]))
+
+    intersections = set(a).intersection(b)
+    for key in intersections:
+        for val_a, val_b in zip(a[key], b[key]):
+            if val_b - val_a <= distance:
+                out[key] = [f"{key}_w{val_a}", f"{key}_w{val_b}"]
+
+    return out
+
+                
+    
+
+
 
 
 
