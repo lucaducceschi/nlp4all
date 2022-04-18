@@ -134,17 +134,15 @@ def getsequence():
         b[key].append(int(val[1:]))
 
     intersections = set(a).intersection(b)
+    out = {key:[] for key in intersections}
     for key in intersections:
         for val_a, val_b in zip(a[key], b[key]):
             if val_b - val_a <= distance:
-                out[key] = [f"{key}_w{val_a}", f"{key}_w{val_b}"]
+                out[key].append([f"{key}_w{val_a}", f"{key}_w{val_b}"])
 
     return out
 
                 
-    
-
-
 
 
 
