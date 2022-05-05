@@ -12,7 +12,8 @@ import * as _ from 'lodash';
   styleUrls: ['./side-panel.component.scss'],
 })
 export class SidePanelComponent {
-  @Input() documentList: Document[] = [];
+  openedDocument: Document;
+
   @Output() documentListSelectionChangeEvent = new EventEmitter<any>();
   @Output() removeDocumentFromListEvent = new EventEmitter<any>();
 
@@ -26,9 +27,7 @@ export class SidePanelComponent {
   }
 
   removeDocumentFromList($event: any) {
-    this.documentList = this.documentList.filter(
-      (document) => document.docId != $event
-    );
+    this.openedDocument = undefined;
     this.removeDocumentFromListEvent.emit($event);
   }
 
@@ -44,19 +43,15 @@ export class SidePanelComponent {
 
       const dialogRef = this.dialog.open(AddTextsDialogComponent, {
         data: documentList.filter(
-          (document) =>
-            !_.some(
-              this.documentList,
-              (documentA) => document.docId == documentA.docId
-            )
+          (document) => this.openedDocument?.docId != document.docId
         ),
       });
 
-      dialogRef.afterClosed().subscribe((data: MatSelectionList) => {
-        const documentsSelected: Document[] =
-          data.selectedOptions?.selected.map((option) => option.value) || [];
-
-        this.documentList.push(...documentsSelected);
+      dialogRef.afterClosed().subscribe((data: any) => {
+        if (data) {
+          this.openedDocument = data.selectedOptions?.selected[0].value;
+          this.documentListSelectionChange(this.openedDocument);
+        }
       });
     });
   }

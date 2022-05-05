@@ -3,7 +3,7 @@
   border-radius: 4px;
   display: block;
   height: 425px;
-  margin-bottom: 12px;
+  margin-bottom: 30px;
 }
 
 .pos-button {
@@ -21,4 +21,14 @@
 
 :host ::ng-deep .mat-list-item {
   height: auto !important;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+:host ::ng-deep .mat-list-item:first-child {
+  padding-top: 0px;
+}
+
+.sentence-button {
+  margin-top: 75px;
 }

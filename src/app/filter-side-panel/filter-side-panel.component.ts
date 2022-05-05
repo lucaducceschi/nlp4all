@@ -1,4 +1,5 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { UposValues } from '../models/filter-request';
 
 @Component({
   selector: 'app-filter-side-panel',
@@ -12,7 +13,7 @@ export class FilterSidePanelComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  addFilterCard() {
-    this.addFilterCardEvent.emit();
+  addFilterCard(upos: string) {
+    this.addFilterCardEvent.emit(upos);
   }
 }

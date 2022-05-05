@@ -1,5 +1,5 @@
 <app-side-panel-document-list
-  [documentList]="documentList"
+  [openedDocument]="openedDocument"
   (documentListSelectionChangeEvent)="documentListSelectionChange($event)"
   (removeDocumentFromListEvent)="removeDocumentFromList($event)"
   class="side-panel-document-list"
@@ -10,5 +10,6 @@
   color="warn"
   (click)="openAddTextsDialog()"
 >
-  Aggiungi testo
+  <span *ngIf="openedDocument != undefined">Cambia testo</span
+  ><span *ngIf="openedDocument == undefined">Apri testo</span>
 </button>

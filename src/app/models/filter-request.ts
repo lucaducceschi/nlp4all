@@ -1,6 +1,7 @@
 export interface FilterRequest {
   id_text: string;
   upos: string;
+  lemma?: string;
   clitic?: string;
   number?: string;
   person?: string;

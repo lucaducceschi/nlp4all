@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { fakeDocument } from '../models/fake-document';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { aDocument, Document } from '../models/document';
+import { TokenLens } from '../models/document-token-lens';
 import { DocumentService } from '../services/document.service';
 
 @Component({
@@ -9,9 +9,12 @@ import { DocumentService } from '../services/document.service';
   styleUrls: ['./panel-wrapper.component.scss'],
 })
 export class PanelWrapperComponent {
-  documentList: Document[] = [];
   selectedDocument: string = '';
   selectedDocId: string = '';
+
+  @Output() changedSelectedDocId = new EventEmitter();
+
+  @Input() tokenLenses: TokenLens[] = [];
 
   constructor(private documentService: DocumentService) {}
 
@@ -19,6 +22,7 @@ export class PanelWrapperComponent {
     this.documentService.getDocument($event.docId).subscribe((data) => {
       this.selectedDocument = data;
       this.selectedDocId = $event.docId;
+      this.changedSelectedDocId.emit(this.selectedDocId);
     });
   }
 

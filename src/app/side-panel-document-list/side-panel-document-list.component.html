@@ -5,18 +5,18 @@
   #documentSelected
 >
   <mat-list-option
-    *ngFor="let document of documentList"
+    *ngIf="openedDocument"
     [disableRipple]="true"
-    [value]="document"
+    [value]="openedDocument"
     class="document-list-item"
     role="listitem"
-    [title]="document.title"
+    [title]="openedDocument.title"
   >
-    <span>{{ document.title }}</span>
+    <span>{{ openedDocument.title }}</span>
     <button
       mat-icon-button
       class="document-list-item-close-button"
-      (click)="removeDocumentFromList(document)"
+      (click)="removeDocumentFromList(openedDocument)"
     >
       <mat-icon>close</mat-icon>
     </button>

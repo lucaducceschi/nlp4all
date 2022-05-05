@@ -7,7 +7,7 @@ import { Document } from '../models/document';
   styleUrls: ['./side-panel-document-list.component.scss'],
 })
 export class SidePanelDocumentListComponent {
-  @Input() documentList: Document[] = [];
+  @Input() openedDocument: Document;
   @Output() documentListSelectionChangeEvent = new EventEmitter<any>();
   @Output() removeDocumentFromListEvent = new EventEmitter<any>();
 

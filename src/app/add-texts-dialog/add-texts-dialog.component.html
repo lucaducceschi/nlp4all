@@ -1,6 +1,6 @@
-<h2 mat-dialog-title>Aggiungi testo</h2>
+<h2 mat-dialog-title>Apri testo</h2>
 <mat-dialog-content class="mat-typography">
-  <mat-selection-list multiple="true" #documentsSelected>
+  <mat-selection-list [multiple]="false" #documentSelected>
     <mat-list-option
       *ngFor="let document of data"
       [disableRipple]="true"
@@ -12,8 +12,8 @@
   </mat-selection-list>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button [mat-dialog-close]="documentsSelected" cdkFocusInitial>
-    Aggiungi
+  <button mat-button [mat-dialog-close]="documentSelected" cdkFocusInitial>
+    Apri
   </button>
-  <button mat-button mat-dialog-close>Annulla</button>
+  <button mat-button [mat-dialog-close]="">Annulla</button>
 </mat-dialog-actions>

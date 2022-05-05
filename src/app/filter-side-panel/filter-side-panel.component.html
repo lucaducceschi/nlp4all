@@ -4,9 +4,71 @@
       mat-flat-button
       class="pos-button"
       color="warn"
-      (click)="addFilterCard()"
+      (click)="addFilterCard('ADJ')"
     >
       ADJ
+    </button>
+  </mat-list-item>
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('VERB')"
+    >
+      VERB
+    </button>
+  </mat-list-item>
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('NOUN')"
+    >
+      NOUN
+    </button>
+  </mat-list-item>
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('PRON')"
+    >
+      PRONOUN
+    </button>
+  </mat-list-item>
+
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('DET')"
+    >
+      ARTICLE
+    </button>
+  </mat-list-item>
+
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button sentence-button"
+      color="warn"
+      (click)="addFilterCard('SENTENCE')"
+    >
+      SENTENCE
+    </button>
+  </mat-list-item>
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('SEQUENCE')"
+    >
+      SEQUENCE
     </button>
   </mat-list-item>
 </mat-list>

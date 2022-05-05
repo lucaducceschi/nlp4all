@@ -1,15 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { TokenLens } from '../models/document-token-lens';
 
 @Component({
   selector: 'app-wrapper',
   templateUrl: './wrapper.component.html',
-  styleUrls: ['./wrapper.component.scss']
+  styleUrls: ['./wrapper.component.scss'],
 })
-export class WrapperComponent implements OnInit {
+export class WrapperComponent {
+  selectedDocId: string = '';
+  selectedTabIndex: number;
 
-  constructor() { }
+  tokenLenses: TokenLens[] = [];
 
-  ngOnInit(): void {
+  updateSelectedDocId($event: any) {
+    this.selectedDocId = $event;
   }
 
+  updateTokenLenses(tokenLenses: TokenLens[]) {
+    this.tokenLenses = [...tokenLenses];
+  }
+
+  updateSelectedTabIndex($event: number) {
+    this.selectedTabIndex = $event;
+  }
 }

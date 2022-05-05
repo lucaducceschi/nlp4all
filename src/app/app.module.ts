@@ -19,12 +19,20 @@ import { SidePanelDocumentListComponent } from './side-panel-document-list/side-
 import { HttpClientModule } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AddTextsDialogComponent } from './add-texts-dialog/add-texts-dialog.component';
+import { RemoveCardsDialogComponent } from './remove-cards-dialog/remove-cards-dialog.component';
 import { FilterWrapperComponent } from './filter-wrapper/filter-wrapper.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { FilterMainPanelComponent } from './filter-main-panel/filter-main-panel.component';
 import { FilterSidePanelComponent } from './filter-side-panel/filter-side-panel.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @NgModule({
   declarations: [
@@ -37,6 +45,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     DocumentComponent,
     SidePanelDocumentListComponent,
     AddTextsDialogComponent,
+    RemoveCardsDialogComponent,
     FilterWrapperComponent,
     FilterMainPanelComponent,
     FilterSidePanelComponent,
@@ -55,6 +64,14 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     MatTabsModule,
     ScrollingModule,
     DragDropModule,
+    MatExpansionModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    FormsModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSlideToggleModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

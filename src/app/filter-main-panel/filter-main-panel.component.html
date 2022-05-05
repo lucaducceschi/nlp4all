@@ -1,10 +1,353 @@
 <div class="boundary">
-  <div
+  <mat-expansion-panel
+    class="filter-card"
+    [expanded]="false"
     *ngFor="let card of filterCards"
-    cdkDragBoundary=".boundary"
-    class="box"
     cdkDrag
+    cdkDragBoundary=".boundary"
+    (mousedown)="moveUp(card)"
+    (cdkDragEnded)="panelH._toggle()"
+    (click)="linkWithFilterCard(panelH, card)"
+    (cdkDragMoved)="updateLine(card)"
+    [cdkDragFreeDragPosition]="getFreePosition(card)"
+    [ngStyle]="{ 'z-index': card.zIndex }"
+    [id]="card.id"
   >
-    {{ card.filterRequest.upos }}
-  </div>
+    <mat-expansion-panel-header
+      #panelH
+      [collapsedHeight]="'40px'"
+      [expandedHeight]="'40px'"
+    >
+      <button
+        mat-icon-button
+        aria-label="Remove"
+        class="remove-button"
+        (click)="removeFilterCard(card)"
+      >
+        <mat-icon color="warn">delete</mat-icon>
+      </button>
+      <mat-panel-title>
+        <mat-slide-toggle
+          [disableRipple]="true"
+          (click)="$event.stopPropagation()"
+          (change)="toggleFilterLens($event, card)"
+          [disabled]="card.notApplied"
+        ></mat-slide-toggle>
+        {{ card.filterRequest.upos }}
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <form [formGroup]="card.filterFormGroup">
+      <mat-form-field appearance="outline">
+        <mat-label>Lemma</mat-label>
+        <input matInput formControlName="lemma" placeholder="Scrivi un lemma" />
+      </mat-form-field>
+
+      <div
+        *ngIf="
+          card.filterRequest.upos == 'VERB' ||
+          card.filterRequest.upos == 'ADJ' ||
+          card.filterRequest.upos == 'NOUN' ||
+          card.filterRequest.upos == 'PRON' ||
+          card.filterRequest.upos == 'DET'
+        "
+        class="checkbox-group"
+      >
+        <label>Gender: </label>
+        <mat-checkbox formControlName="fem">Fem</mat-checkbox>
+        <mat-checkbox formControlName="masc">Masc</mat-checkbox>
+      </div>
+
+      <div
+        *ngIf="
+          card.filterRequest.upos == 'VERB' ||
+          card.filterRequest.upos == 'ADJ' ||
+          card.filterRequest.upos == 'NOUN' ||
+          card.filterRequest.upos == 'PRON' ||
+          card.filterRequest.upos == 'DET'
+        "
+        class="checkbox-group"
+      >
+        <label>Number:</label>
+        <mat-checkbox formControlName="sing">Sing</mat-checkbox>
+        <mat-checkbox formControlName="plur">Plur</mat-checkbox>
+      </div>
+
+      <div *ngIf="card.filterRequest.upos == 'VERB'">
+        <mat-label>Tense: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="tense" value="All">
+            <mat-option value="Fut"> Fut </mat-option>
+            <mat-option value="Imp"> Imp </mat-option>
+            <mat-option value="Past"> Past </mat-option>
+            <mat-option value="All"> ALL </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-label>Form: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="verbform" value="All">
+            <mat-option value="Fin"> Fin </mat-option>
+            <mat-option value="Ger"> Ger </mat-option>
+            <mat-option value="Inf"> Inf </mat-option>
+            <mat-option value="All"> ALL </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="card.filterRequest.upos == 'ADJ'">
+        <mat-label>Numtype: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="numtype" value="All">
+            <mat-option value="ord"> Ord </mat-option>
+            <mat-option value="card"> Card </mat-option>
+            <mat-option value="All"> ALL </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="card.filterRequest.upos == 'PRON'">
+        <mat-label>Prontype: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="prontype" value="All">
+            <mat-option value="Art"> Art </mat-option>
+            <mat-option value="Dem"> Dem </mat-option>
+            <mat-option value="Exc"> Exc </mat-option>
+            <mat-option value="Ind"> Ind </mat-option>
+            <mat-option value="Int"> Int </mat-option>
+            <mat-option value="Neg"> Neg </mat-option>
+            <mat-option value="Prs"> Prs </mat-option>
+            <mat-option value="Rel"> Rel </mat-option>
+            <mat-option value="Tot"> Tot </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="card.filterRequest.upos == 'ADJ'">
+        <mat-label>Polarity: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="polarity" value="All">
+            <mat-option value="Neg"> Negative </mat-option>
+            <mat-option value="Pos"> Positive </mat-option>
+            <mat-option value="All"> ALL </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div
+        *ngIf="
+          card.filterRequest.upos == 'ADJ' || card.filterRequest.upos == 'NOUN'
+        "
+        class="checkbox-group"
+      >
+        <label>Foreign:</label>
+        <mat-checkbox formControlName="foreign">Yes</mat-checkbox>
+      </div>
+
+      <div *ngIf="card.filterRequest.upos == 'DET'" class="checkbox-group">
+        <label>Definite:</label>
+        <mat-checkbox formControlName="def">Def</mat-checkbox>
+        <mat-checkbox formControlName="ind">Ind</mat-checkbox>
+      </div>
+
+      <button
+        mat-flat-button
+        color="warn"
+        (click)="applyFilter(card)"
+        class="apply-button"
+      >
+        Applica
+      </button>
+    </form>
+
+    <mat-expansion-panel [expanded]="true" class="lens-card">
+      <mat-expansion-panel-header
+        [collapsedHeight]="'40px'"
+        [expandedHeight]="'40px'"
+      >
+        <mat-panel-title> Lens </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <form [formGroup]="card.lensFormGroup">
+        <mat-label>Font: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="font">
+            <mat-option value="Arial"> Arial </mat-option>
+            <mat-option value="Verdana"> Verdana </mat-option>
+            <mat-option value="Times New Roman"> Times New Roman </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-label class="color-label">Color</mat-label>
+        <input type="color" formControlName="color" value="#000000" />
+
+        <mat-label class="highlight-label">Highlight</mat-label>
+        <input type="color" formControlName="highlight" value="#FFFFFF" />
+      </form>
+    </mat-expansion-panel>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel
+    class="filter-card"
+    [expanded]="false"
+    *ngFor="let card of sentenceCards"
+    cdkDrag
+    cdkDragBoundary=".boundary"
+    (mousedown)="moveUp(card)"
+    (cdkDragEnded)="panelHSentence._toggle()"
+    (cdkDragMoved)="updateLine(card)"
+    (click)="updateLineAfterMove(card)"
+    [ngStyle]="{ 'z-index': card.zIndex }"
+    [id]="card.id"
+  >
+    <mat-expansion-panel-header
+      #panelHSentence
+      [collapsedHeight]="'40px'"
+      [expandedHeight]="'40px'"
+    >
+      <button
+        mat-icon-button
+        aria-label="Remove"
+        class="remove-button"
+        (click)="removeSentenceCard(card)"
+      >
+        <mat-icon color="warn">delete</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="linkFilterCard($event, card)"
+        *ngIf="card.embeddingFor == undefined"
+      >
+        <mat-icon color="warn">settings_ethernet</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="unlinkFilterCard($event, card, sentenceSlideToggle)"
+        *ngIf="card.embeddingFor != undefined"
+      >
+        <mat-icon color="warn"> backspace </mat-icon>
+      </button>
+      <mat-panel-title>
+        <mat-slide-toggle
+          #sentenceSlideToggle
+          [disableRipple]="true"
+          (click)="$event.stopPropagation()"
+          (change)="toggleSentenceLens($event, card)"
+          [disabled]="card.embeddingFor == undefined || card.notApplied"
+          [checked]="card.active"
+        ></mat-slide-toggle>
+        SENTENCE
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <form [formGroup]="card.sentenceFormGroup">
+      <mat-label>Type: </mat-label>
+      <mat-form-field appearance="fill">
+        <mat-select formControlName="type">
+          <mat-option value="int"> Int </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="warn"
+        (click)="applySentence(card)"
+        class="apply-button"
+      >
+        Applica
+      </button>
+    </form>
+
+    <mat-expansion-panel [expanded]="true" class="lens-card">
+      <mat-expansion-panel-header
+        [collapsedHeight]="'40px'"
+        [expandedHeight]="'40px'"
+      >
+        <mat-panel-title> Lens </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <form [formGroup]="card.lensFormGroup">
+        <mat-label>Font: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="font">
+            <mat-option value="Arial"> Arial </mat-option>
+            <mat-option value="Verdana"> Verdana </mat-option>
+            <mat-option value="Times New Roman"> Times New Roman </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-label class="color-label">Color</mat-label>
+        <input type="color" formControlName="color" value="#000000" />
+
+        <mat-label class="highlight-label">Highlight</mat-label>
+        <input type="color" formControlName="highlight" value="#FFFFFF" />
+      </form>
+    </mat-expansion-panel>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel
+    class="filter-card"
+    style="max-height: 200px"
+    [expanded]="false"
+    *ngFor="let card of sequenceCards"
+    cdkDrag
+    cdkDragBoundary=".boundary"
+    (mousedown)="moveUp(card)"
+    (cdkDragEnded)="panelHSentence._toggle()"
+    (cdkDragMoved)="updateLine(card)"
+    (click)="updateLineAfterMove(card)"
+    [ngStyle]="{ 'z-index': card.zIndex }"
+    [id]="card.id"
+  >
+    <mat-expansion-panel-header
+      #panelHSentence
+      [collapsedHeight]="'40px'"
+      [expandedHeight]="'40px'"
+    >
+      <button
+        mat-icon-button
+        aria-label="Remove"
+        class="remove-button"
+        (click)="removeSequenceCard(card)"
+      >
+        <mat-icon color="warn">delete</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="linkSequenceFilterCard($event, card)"
+        *ngIf="card.sequenceFor.length < 2"
+      >
+        <mat-icon color="warn">settings_ethernet</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="unlinkSequenceFilterCard($event, card)"
+        *ngIf="card.sequenceFor.length == 2"
+      >
+        <mat-icon color="warn"> backspace </mat-icon>
+      </button>
+      <mat-panel-title style="padding-left: 15px"> SEQUENCE </mat-panel-title>
+    </mat-expansion-panel-header>
+    <form [formGroup]="card.sequenceFormGroup">
+      <mat-form-field appearance="fill">
+        <mat-label>distance</mat-label>
+        <input matInput formControlName="distance" />
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="warn"
+        (click)="applySequence(card)"
+        class="apply-button"
+      >
+        Applica
+      </button>
+    </form>
+  </mat-expansion-panel>
 </div>
