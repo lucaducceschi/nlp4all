@@ -38,6 +38,9 @@ export class MainPanelComponent {
       .querySelectorAll('.word')
       .forEach((span) => span.removeAttribute('style'));
     document
+      .querySelectorAll('.mwt')
+      .forEach((span) => span.removeAttribute('style'));
+    document
       .querySelectorAll('.sentence')
       .forEach((span) => span.removeAttribute('style'));
   }
@@ -45,12 +48,7 @@ export class MainPanelComponent {
   applyTokenLenses() {
     this.tokenLenses.forEach((tokenLens) => {
       tokenLens.tokenResult.forEach((token) => {
-        let element = undefined;
-        // if (token.includes('_')) {
-        //   element = this.getHTMLElement(token);
-        // } else {
-        element = document.getElementById(token);
-        // }
+        const element = document.getElementById(token);
         if (element) {
           element.style.fontFamily = tokenLens.lens.font;
           element.style.color = tokenLens.lens.color;
@@ -58,22 +56,5 @@ export class MainPanelComponent {
         }
       });
     });
-  }
-
-  getHTMLElement(token: string): HTMLElement {
-    let element = document.getElementById(token);
-    if (element == null) {
-      const [sentencePart, wordPart] = token.split('_');
-      const n = parseInt(wordPart.replace(/^\D+/g, ''));
-      element = document.getElementById(
-        sentencePart + '_' + 'w' + n + '-' + (n + 1)
-      );
-      if (element == null) {
-        element = document.getElementById(
-          sentencePart + '_' + 'w' + (n - 1) + '-' + n
-        );
-      }
-    }
-    return element;
   }
 }

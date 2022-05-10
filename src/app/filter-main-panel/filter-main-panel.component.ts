@@ -35,6 +35,7 @@ import {
   PolarityValues,
   ProntypeValues,
   TenseValues,
+  UposValues,
   VerbFormValues,
 } from '../models/filter-request';
 import { RemoveCardsDialogComponent } from '../remove-cards-dialog/remove-cards-dialog.component';
@@ -67,6 +68,8 @@ export class FilterMainPanelComponent {
 
   linkEvent = new Subject<string>();
   linkMode = false;
+
+  defaultSelect = 'All';
 
   constructor(private elementRef: ElementRef, public dialog: MatDialog) {}
 
@@ -109,6 +112,34 @@ export class FilterMainPanelComponent {
         .map((card) => card.zIndex)
         .reduce((prev, curr) => Math.max(prev, curr), 0);
     }
+  }
+
+  //Recupera il nome della card in italiano
+  getCardName(card: Card | SequenceCard) {
+    if (this.isSequenceCard(card)) {
+      return 'SEQUENZA';
+    }
+    if (this.isSentenceCard(card)) {
+      return 'FRASE';
+    }
+    if (this.isFilterCard(card)) {
+      const upos = card.filterRequest.upos;
+      switch (upos) {
+        case UposValues.ADJ:
+          return 'AGGETTIVO';
+        case UposValues.NOUN:
+          return 'NOME';
+        case UposValues.PRON:
+          return 'PRONOME';
+        case UposValues.VERB:
+          return 'VERBO';
+        case UposValues.DET:
+          return 'ARTICOLO';
+        default:
+          return 'FILTRO';
+      }
+    }
+    return 'FILTRO';
   }
 
   //risoluzione bug della card che si aggiunge nel primo posto libero
@@ -156,36 +187,50 @@ export class FilterMainPanelComponent {
     return this.elementRef.nativeElement.offsetParent != null;
   }
 
-  linkWithFilterCard(panelH: MatExpansionPanelHeader, card: FilterCard) {
-    if (card.line) {
-      card.line.position();
+  linkSentenceCardWithFilterCard(
+    panelH: MatExpansionPanelHeader,
+    filterCard: FilterCard
+  ) {
+    if (filterCard.line) {
+      filterCard.line.position();
     }
+
     if (this.linkMode) {
       panelH._toggle();
-      this.linkEvent.next(card.id.toString());
+      this.linkEvent.next(filterCard.id.toString());
     }
   }
 
-  linkFilterCard($event: any, card: SentenceCard) {
+  linkSentenceCard($event: any, sentenceCard: SentenceCard) {
     $event.stopPropagation();
-    const startElement = document.getElementById(card.id.toString());
-    if (card.line == undefined) {
+
+    if (sentenceCard.line == undefined) {
       this.linkMode = true;
+
       this.linkEvent
         .pipe(
           first(),
-          tap((endElementId) => {
-            const endElement = document.getElementById(endElementId);
-            let line = new LeaderLine(startElement, endElement);
+          tap((filterCardElementId) => {
+            const sentenceCardElement = document.getElementById(
+              sentenceCard.id.toString()
+            );
+            const filterCardElement =
+              document.getElementById(filterCardElementId);
+
+            const line = new LeaderLine(sentenceCardElement, filterCardElement);
+
             line.setOptions({
               endPlug: 'behind',
             });
-            card.line = line;
-            const endElementIndex = this.filterCards.findIndex(
-              (filterCard) => filterCard.id == parseInt(endElementId)
+
+            sentenceCard.line = line;
+            sentenceCard.embeddingFor = parseInt(filterCardElementId);
+
+            const embeddedFilterCardIndex = this.filterCards.findIndex(
+              (filterCard) => filterCard.id == parseInt(filterCardElementId)
             );
-            this.filterCards[endElementIndex].line = line;
-            card.embeddingFor = parseInt(endElementId);
+            this.filterCards[embeddedFilterCardIndex].line = line;
+
             this.linkMode = false;
           })
         )
@@ -193,18 +238,23 @@ export class FilterMainPanelComponent {
     }
   }
 
-  unlinkFilterCard(
+  unlinkSentenceCard(
     $event: any,
-    card: SentenceCard,
+    sentenceCard: SentenceCard,
     slideToggle: MatSlideToggle
   ) {
     $event.stopPropagation();
-    card.line.remove();
-    card.line = undefined;
-    const endElementIndex = this.filterCards.findIndex(
-      (filterCard) => filterCard.id == card.embeddingFor
+
+    sentenceCard.line.remove();
+    sentenceCard.line = undefined;
+
+    const embeddedFilterCardIndex = this.filterCards.findIndex(
+      (filterCard) => filterCard.id == sentenceCard.embeddingFor
     );
-    this.filterCards[endElementIndex].line = undefined;
+
+    this.filterCards[embeddedFilterCardIndex].line = undefined;
+    sentenceCard.embeddingFor = undefined;
+
     if (slideToggle.checked) {
       slideToggle.toggle();
       slideToggle.change.emit({
@@ -212,31 +262,44 @@ export class FilterMainPanelComponent {
         checked: false,
       });
     }
-    card.embeddingFor = undefined;
   }
 
-  linkSequenceFilterCard($event: any, card: SequenceCard) {
+  linkSequenceCard($event: any, sequenceCard: SequenceCard) {
     $event.stopPropagation();
-    const startElement = document.getElementById(card.id.toString());
-    if (card.lines.length < 2) {
+
+    if (sequenceCard.lines.length < 2) {
       this.linkMode = true;
+
       this.linkEvent
         .pipe(
           take(2),
-          tap((endElementId) => {
-            const endElement = document.getElementById(endElementId);
-            let line = new LeaderLine(startElement, endElement);
+          tap((sequencedFilterCardId) => {
+            const sequenceCardElement = document.getElementById(
+              sequenceCard.id.toString()
+            );
+            const sequencedFilterCardElement = document.getElementById(
+              sequencedFilterCardId
+            );
+
+            const line = new LeaderLine(
+              sequenceCardElement,
+              sequencedFilterCardElement
+            );
+
             line.setOptions({
               endPlug: 'behind',
             });
-            card.lines.push(line);
-            const endElementIndex = this.filterCards.findIndex(
-              (filterCard) => filterCard.id == parseInt(endElementId)
+
+            sequenceCard.lines.push(line);
+            sequenceCard.sequenceFor.push(parseInt(sequencedFilterCardId));
+
+            const sequencedFilterCardIndex = this.filterCards.findIndex(
+              (filterCard) => filterCard.id == parseInt(sequencedFilterCardId)
             );
-            this.filterCards[endElementIndex].line = line;
-            console.log(card.sequenceFor);
-            card.sequenceFor.push(parseInt(endElementId));
-            if (card.sequenceFor.length == 2) {
+
+            this.filterCards[sequencedFilterCardIndex].line = line;
+
+            if (sequenceCard.sequenceFor.length == 2) {
               this.linkMode = false;
             }
           })
@@ -245,19 +308,24 @@ export class FilterMainPanelComponent {
     }
   }
 
-  unlinkSequenceFilterCard($event: any, card: SequenceCard) {
+  unlinkSequenceCard($event: any, card: SequenceCard) {
     $event.stopPropagation();
+
     card.lines.forEach((line) => line.remove());
     card.lines = [];
-    const beforeEndElementIndex = this.filterCards.findIndex(
+
+    const beforeFilterCardIndex = this.filterCards.findIndex(
       (filterCard) => filterCard.id == card.sequenceFor[0]
     );
-    const afterEndElementIndex = this.filterCards.findIndex(
+    const afterFilterCardIndex = this.filterCards.findIndex(
       (filterCard) => filterCard.id == card.sequenceFor[1]
     );
-    this.filterCards[beforeEndElementIndex].line = undefined;
-    this.filterCards[afterEndElementIndex].line = undefined;
+    this.filterCards[beforeFilterCardIndex].line = undefined;
+    this.filterCards[afterFilterCardIndex].line = undefined;
     card.sequenceFor = [];
+
+    this.applyFilterEvent.emit(this.filterCards[beforeFilterCardIndex]);
+    this.applyFilterEvent.emit(this.filterCards[afterFilterCardIndex]);
   }
 
   updateLine(card: FilterCard | SentenceCard | SequenceCard) {
@@ -268,10 +336,16 @@ export class FilterMainPanelComponent {
     }
   }
 
-  isSequenceCard(
-    card: FilterCard | SentenceCard | SequenceCard
-  ): card is SequenceCard {
+  isSequenceCard(card: Card | SequenceCard): card is SequenceCard {
     return (<SequenceCard>card).lines !== undefined;
+  }
+
+  isFilterCard(card: Card | SequenceCard): card is FilterCard {
+    return (<FilterCard>card).filterRequest !== undefined;
+  }
+
+  isSentenceCard(card: Card | SentenceCard): card is SentenceCard {
+    return (<SentenceCard>card).sentenceRequest !== undefined;
   }
 
   updateLineAfterMove(card: FilterCard | SentenceCard | SequenceCard) {
@@ -283,7 +357,9 @@ export class FilterMainPanelComponent {
   }
 
   //REMOVE
-  removeFilterCard(filterCard: FilterCard) {
+  removeFilterCard($event: any, filterCard: FilterCard) {
+    $event.stopPropagation();
+
     const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
@@ -292,7 +368,9 @@ export class FilterMainPanelComponent {
     });
   }
 
-  removeSentenceCard(sentenceCard: SentenceCard) {
+  removeSentenceCard($event: any, sentenceCard: SentenceCard) {
+    $event.stopPropagation();
+
     const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
@@ -301,7 +379,9 @@ export class FilterMainPanelComponent {
     });
   }
 
-  removeSequenceCard(sequenceCard: SequenceCard) {
+  removeSequenceCard($event: any, sequenceCard: SequenceCard) {
+    $event.stopPropagation();
+
     const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {

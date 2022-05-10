@@ -1,5 +1,6 @@
 export interface FilterRequest {
   id_text: string;
+  ner?: string;
   upos: string;
   lemma?: string;
   clitic?: string;
@@ -119,3 +120,5 @@ export enum DegreeValues {
 export enum ForeignValues {
   YES = 'Yes',
 }
+
+export enum Ner {}

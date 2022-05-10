@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Subject } from 'rxjs';
 import { TokenLens } from '../models/document-token-lens';
 
 @Component({
@@ -12,8 +13,12 @@ export class WrapperComponent {
 
   tokenLenses: TokenLens[] = [];
 
+  resetCards = new Subject<any>();
+
   updateSelectedDocId($event: any) {
     this.selectedDocId = $event;
+    this.tokenLenses = [];
+    this.resetCards.next(true);
   }
 
   updateTokenLenses(tokenLenses: TokenLens[]) {

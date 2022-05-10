@@ -29,6 +29,7 @@ export class PanelWrapperComponent {
   removeDocumentFromList($event: string) {
     if (this.selectedDocId == $event) {
       this.selectedDocument = '';
+      this.changedSelectedDocId.emit(this.selectedDocId);
     }
   }
 }

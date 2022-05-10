@@ -2,6 +2,8 @@ import { preserveWhitespacesDefault } from '@angular/compiler';
 import { INFERRED_TYPE } from '@angular/compiler/src/output/output_ast';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AnyForUntypedForms, FormBuilder, Validators } from '@angular/forms';
+import { filter } from 'lodash';
+import { Subject } from 'rxjs';
 import { aTokenLens, TokenLens } from '../models/document-token-lens';
 import {
   aFilterCard,
@@ -27,6 +29,7 @@ import { FilterService } from '../services/filter.service';
 export class FilterWrapperComponent {
   @Input() selectedDocId: string = '';
   @Input() selectedTabIndex: number;
+  @Input() resetCards: Subject<any>;
 
   @Output() updateTokenLensesEvent = new EventEmitter();
 
@@ -37,6 +40,14 @@ export class FilterWrapperComponent {
   tokenLenses: TokenLens[] = [];
 
   constructor(private filterService: FilterService, private fb: FormBuilder) {}
+
+  ngOnInit() {
+    this.resetCards.subscribe(() => {
+      this.filterCards = [];
+      this.sentenceCards = [];
+      this.sequenceCards = [];
+    });
+  }
 
   addFilterCardToMainPanel($event: string) {
     if (this.selectedDocId != '') {
@@ -112,13 +123,14 @@ export class FilterWrapperComponent {
               masc: [false],
               sing: [false],
               plur: [false],
-              tense: [undefined],
-              verbform: [undefined],
+              tense: ['All'],
+              ner: [undefined],
+              verbform: ['All'],
               def: [false],
               ind: [false],
-              numtype: [undefined],
-              prontype: [undefined],
-              polarity: [undefined],
+              numtype: ['All'],
+              prontype: ['All'],
+              polarity: ['All'],
               foreign: [false],
             }),
             lensFormGroup: this.fb.group({
@@ -187,12 +199,12 @@ export class FilterWrapperComponent {
   }
 
   applySequence($event: any) {
-    const beforeTokenLens = this.tokenLenses.find((tokenLens) => {
-      return tokenLens.cardId == $event.sequenceCard.sequenceFor[0];
-    });
-    const afterTokenLens = this.tokenLenses.find((tokenLens) => {
-      return tokenLens.cardId == $event.sequenceCard.sequenceFor[1];
-    });
+    const beforeTokenLens = this.tokenLenses.find(
+      (tokenLens) => tokenLens.cardId == $event.sequenceCard.sequenceFor[0]
+    );
+    const afterTokenLens = this.tokenLenses.find(
+      (tokenLens) => tokenLens.cardId == $event.sequenceCard.sequenceFor[1]
+    );
 
     $event.sequenceCard.sequenceRequest.before =
       beforeTokenLens?.tokenResult || [];
@@ -205,28 +217,23 @@ export class FilterWrapperComponent {
       .subscribe((sequenceResponse) => {
         const beforeTokenResults = Object.values(sequenceResponse).flatMap(
           (sequenceTokensBySentence) =>
-            sequenceTokensBySentence.flatMap(([before, _]) => before)
+            sequenceTokensBySentence.flatMap(([_, before]) => before)
         );
+
         const afterTokenResults = Object.values(sequenceResponse).flatMap(
           (sequenceTokensBySentence) =>
-            sequenceTokensBySentence.flatMap(([_, after]) => after)
+            sequenceTokensBySentence.flatMap(([after, _]) => after)
         );
 
-        this.tokenLenses.push(
-          aTokenLens({
-            cardId: $event.beforeCard.id,
-            tokenResult: beforeTokenResults,
-            lens: $event.beforeCard.filterLens,
-          })
+        const beforeTokenLensIndex = this.tokenLenses.findIndex(
+          (tokenLens) => tokenLens.cardId == $event.sequenceCard.sequenceFor[0]
+        );
+        const afterTokenLensIndex = this.tokenLenses.findIndex(
+          (tokenLens) => tokenLens.cardId == $event.sequenceCard.sequenceFor[1]
         );
 
-        this.tokenLenses.push(
-          aTokenLens({
-            cardId: $event.afterCard.id,
-            tokenResult: afterTokenResults,
-            lens: $event.afterCard.filterLens,
-          })
-        );
+        this.tokenLenses[beforeTokenLensIndex].tokenResult = beforeTokenResults;
+        this.tokenLenses[afterTokenLensIndex].tokenResult = afterTokenResults;
 
         this.updateTokenLensesEvent.emit(this.tokenLenses);
       });
@@ -278,6 +285,15 @@ export class FilterWrapperComponent {
   }
 
   removeSentenceCard(sentenceCardToRemove: SentenceCard) {
+    const embeddingFilterCardIndex = this.filterCards.findIndex(
+      (filterCard) => filterCard.id == sentenceCardToRemove.embeddingFor
+    );
+
+    if (embeddingFilterCardIndex != -1) {
+      sentenceCardToRemove.line.remove();
+      this.filterCards[embeddingFilterCardIndex].line = undefined;
+    }
+
     this.sentenceCards = this.sentenceCards.filter(
       (sentenceCard) => sentenceCard.id != sentenceCardToRemove.id
     );
@@ -290,6 +306,24 @@ export class FilterWrapperComponent {
   }
 
   removeSequenceCard(sequenceCardToRemove: SequenceCard) {
+    sequenceCardToRemove.lines.forEach((line) => line.remove());
+
+    const sequenceFilterCardBeforeIndex = this.filterCards.findIndex(
+      (filterCard) => filterCard.id == sequenceCardToRemove.sequenceFor[0]
+    );
+
+    if (sequenceFilterCardBeforeIndex != -1) {
+      this.filterCards[sequenceFilterCardBeforeIndex].line = undefined;
+    }
+
+    const sequenceFilterCardAfterIndex = this.filterCards.findIndex(
+      (filterCard) => filterCard.id == sequenceCardToRemove.sequenceFor[0]
+    );
+
+    if (sequenceFilterCardAfterIndex != -1) {
+      this.filterCards[sequenceFilterCardAfterIndex].line = undefined;
+    }
+
     this.sequenceCards = this.sequenceCards.filter(
       (sequenceCard) => sequenceCard.id != sequenceCardToRemove.id
     );
