@@ -69,8 +69,6 @@ export class FilterMainPanelComponent {
   linkEvent = new Subject<string>();
   linkMode = false;
 
-  defaultSelect = 'All';
-
   constructor(private elementRef: ElementRef, public dialog: MatDialog) {}
 
   ngOnChanges() {
@@ -83,7 +81,11 @@ export class FilterMainPanelComponent {
 
       this.sequenceCards.forEach((sequenceCard) => {
         if (sequenceCard.lines.length > 0) {
-          sequenceCard.lines.forEach((line) => line.hide('none'));
+          sequenceCard.lines.forEach((line) => {
+            if (line) {
+              line.hide('none');
+            }
+          });
         }
       });
     }
@@ -101,8 +103,10 @@ export class FilterMainPanelComponent {
         this.sequenceCards.forEach((sequenceCard) => {
           if (sequenceCard.lines.length > 0) {
             sequenceCard.lines.forEach((line) => {
-              line.show('none');
-              line.position();
+              if (line) {
+                line.show('none');
+                line.position();
+              }
             });
           }
         });
@@ -123,18 +127,33 @@ export class FilterMainPanelComponent {
       return 'FRASE';
     }
     if (this.isFilterCard(card)) {
+      const sequenceIndex =
+        this.sequenceCards
+          .find((sequenceCard) => sequenceCard.sequenceFor.includes(card.id))
+          ?.sequenceFor.findIndex((filterCardId) => filterCardId == card.id) +
+        1;
+
+      let sequenceOrder = '';
+      if (sequenceIndex > 0) {
+        sequenceOrder = ' (' + sequenceIndex + ')';
+      }
+
       const upos = card.filterRequest.upos;
       switch (upos) {
         case UposValues.ADJ:
-          return 'AGGETTIVO';
+          return 'AGGETTIVO' + sequenceOrder;
         case UposValues.NOUN:
-          return 'NOME';
+          return 'NOME' + sequenceOrder;
         case UposValues.PRON:
-          return 'PRONOME';
+          return 'PRONOME' + sequenceOrder;
         case UposValues.VERB:
-          return 'VERBO';
+          return 'VERBO' + sequenceOrder;
         case UposValues.DET:
-          return 'ARTICOLO';
+          return 'ARTICOLO' + sequenceOrder;
+        case UposValues.NUM:
+          return 'NUMERALE' + sequenceOrder;
+        case UposValues.PROPN:
+          return 'NOME PROPRIO' + sequenceOrder;
         default:
           return 'FILTRO';
       }
@@ -264,73 +283,123 @@ export class FilterMainPanelComponent {
     }
   }
 
-  linkSequenceCard($event: any, sequenceCard: SequenceCard) {
+  linkSequenceCard1($event: any, sequenceCard: SequenceCard) {
     $event.stopPropagation();
 
-    if (sequenceCard.lines.length < 2) {
-      this.linkMode = true;
+    this.linkMode = true;
 
-      this.linkEvent
-        .pipe(
-          take(2),
-          tap((sequencedFilterCardId) => {
-            const sequenceCardElement = document.getElementById(
-              sequenceCard.id.toString()
-            );
-            const sequencedFilterCardElement = document.getElementById(
-              sequencedFilterCardId
-            );
+    this.linkEvent
+      .pipe(
+        first(),
+        tap((sequencedFilterCardId) => {
+          const sequenceCardElement = document.getElementById(
+            sequenceCard.id.toString()
+          );
+          const sequencedFilterCardElement = document.getElementById(
+            sequencedFilterCardId
+          );
 
-            const line = new LeaderLine(
-              sequenceCardElement,
-              sequencedFilterCardElement
-            );
+          const line = new LeaderLine(
+            sequenceCardElement,
+            sequencedFilterCardElement
+          );
 
-            line.setOptions({
-              endPlug: 'behind',
-            });
+          line.setOptions({
+            endPlug: 'behind',
+          });
 
-            sequenceCard.lines.push(line);
-            sequenceCard.sequenceFor.push(parseInt(sequencedFilterCardId));
+          sequenceCard.lines[0] = line;
+          sequenceCard.sequenceFor[0] = parseInt(sequencedFilterCardId);
 
-            const sequencedFilterCardIndex = this.filterCards.findIndex(
-              (filterCard) => filterCard.id == parseInt(sequencedFilterCardId)
-            );
+          const sequencedFilterCardIndex = this.filterCards.findIndex(
+            (filterCard) => filterCard.id == parseInt(sequencedFilterCardId)
+          );
 
-            this.filterCards[sequencedFilterCardIndex].line = line;
-
-            if (sequenceCard.sequenceFor.length == 2) {
-              this.linkMode = false;
-            }
-          })
-        )
-        .subscribe();
-    }
+          this.filterCards[sequencedFilterCardIndex].line = line;
+          this.linkMode = false;
+        })
+      )
+      .subscribe();
   }
 
-  unlinkSequenceCard($event: any, card: SequenceCard) {
+  linkSequenceCard2($event: any, sequenceCard: SequenceCard) {
+    $event.stopPropagation();
+    this.linkMode = true;
+
+    this.linkEvent
+      .pipe(
+        first(),
+        tap((sequencedFilterCardId) => {
+          const sequenceCardElement = document.getElementById(
+            sequenceCard.id.toString()
+          );
+          const sequencedFilterCardElement = document.getElementById(
+            sequencedFilterCardId
+          );
+
+          const line = new LeaderLine(
+            sequenceCardElement,
+            sequencedFilterCardElement
+          );
+
+          line.setOptions({
+            endPlug: 'behind',
+          });
+
+          sequenceCard.lines[1] = line;
+          sequenceCard.sequenceFor[1] = parseInt(sequencedFilterCardId);
+
+          const sequencedFilterCardIndex = this.filterCards.findIndex(
+            (filterCard) => filterCard.id == parseInt(sequencedFilterCardId)
+          );
+
+          this.filterCards[sequencedFilterCardIndex].line = line;
+          this.linkMode = false;
+        })
+      )
+      .subscribe();
+  }
+
+  unlinkSequenceCard1($event: any, card: SequenceCard) {
     $event.stopPropagation();
 
-    card.lines.forEach((line) => line.remove());
-    card.lines = [];
+    card.lines[0].remove();
+    card.lines[0] = undefined;
 
     const beforeFilterCardIndex = this.filterCards.findIndex(
       (filterCard) => filterCard.id == card.sequenceFor[0]
     );
+
+    this.filterCards[beforeFilterCardIndex].line = undefined;
+
+    card.sequenceFor[0] = undefined;
+
+    this.applyFilterEvent.emit(this.filterCards[beforeFilterCardIndex]);
+  }
+
+  unlinkSequenceCard2($event: any, card: SequenceCard) {
+    $event.stopPropagation();
+
+    card.lines[1].remove();
+    card.lines[1] = undefined;
+
     const afterFilterCardIndex = this.filterCards.findIndex(
       (filterCard) => filterCard.id == card.sequenceFor[1]
     );
-    this.filterCards[beforeFilterCardIndex].line = undefined;
     this.filterCards[afterFilterCardIndex].line = undefined;
-    card.sequenceFor = [];
 
-    this.applyFilterEvent.emit(this.filterCards[beforeFilterCardIndex]);
+    card.sequenceFor[1] = undefined;
+
     this.applyFilterEvent.emit(this.filterCards[afterFilterCardIndex]);
   }
 
   updateLine(card: FilterCard | SentenceCard | SequenceCard) {
     if (this.isSequenceCard(card)) {
-      card.lines.forEach((line) => line.position());
+      card.lines.forEach((line) => {
+        if (line) {
+          line.position();
+        }
+      });
     } else {
       if (card.line) card.line.position();
     }
@@ -359,35 +428,17 @@ export class FilterMainPanelComponent {
   //REMOVE
   removeFilterCard($event: any, filterCard: FilterCard) {
     $event.stopPropagation();
-
-    const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.removeFilterCardEvent.emit(filterCard);
-      }
-    });
+    this.removeFilterCardEvent.emit(filterCard);
   }
 
   removeSentenceCard($event: any, sentenceCard: SentenceCard) {
     $event.stopPropagation();
-
-    const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.removeSentenceCardEvent.emit(sentenceCard);
-      }
-    });
+    this.removeSentenceCardEvent.emit(sentenceCard);
   }
 
   removeSequenceCard($event: any, sequenceCard: SequenceCard) {
     $event.stopPropagation();
-
-    const dialogRef = this.dialog.open(RemoveCardsDialogComponent);
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.removeSequenceCardEvent.emit(sequenceCard);
-      }
-    });
+    this.removeSequenceCardEvent.emit(sequenceCard);
   }
 
   //TOGGLE
@@ -449,9 +500,8 @@ export class FilterMainPanelComponent {
       tense: this.getTenseValue(filterCard.filterFormGroup.value),
       verbform: this.getVerbFormValue(filterCard.filterFormGroup.value),
       definite: this.getDefiniteValue(filterCard.filterFormGroup.value),
-      numtype: this.getNumtypeValue(filterCard.filterFormGroup.value),
+      numtype: this.getNumTypeValue(filterCard.filterFormGroup.value),
       prontype: this.getProntypeValue(filterCard.filterFormGroup.value),
-      polarity: this.getPolarityValue(filterCard.filterFormGroup.value),
       foreign: this.getForeignValue(filterCard.filterFormGroup.value),
     };
 
@@ -524,32 +574,35 @@ export class FilterMainPanelComponent {
   }
 
   getNumberValue(value: any) {
-    if (value.sing && !value.plur) {
-      return NumberValues.SING;
-    } else if (value.plur && !value.sing) {
-      return NumberValues.PLUR;
-    } else {
-      return undefined;
+    switch (value.num) {
+      case NumberValues.SING:
+        return NumberValues.SING;
+      case NumberValues.PLUR:
+        return NumberValues.PLUR;
+      default:
+        return undefined;
     }
   }
 
   getGenderValue(value: any) {
-    if (value.masc && !value.fem) {
-      return GenderValues.MASC;
-    } else if (value.fem && !value.masc) {
-      return GenderValues.FEM;
-    } else {
-      return undefined;
+    switch (value.gender) {
+      case GenderValues.MASC:
+        return GenderValues.MASC;
+      case GenderValues.FEM:
+        return GenderValues.FEM;
+      default:
+        return undefined;
     }
   }
 
   getDefiniteValue(value: any) {
-    if (value.def && !value.ind) {
-      return DefiniteValues.DEF;
-    } else if (value.ind && !value.def) {
-      return DefiniteValues.IND;
-    } else {
-      return undefined;
+    switch (value.definite) {
+      case DefiniteValues.DEF:
+        return DefiniteValues.DEF;
+      case DefiniteValues.IND:
+        return DefiniteValues.IND;
+      default:
+        return undefined;
     }
   }
 
@@ -583,25 +636,14 @@ export class FilterMainPanelComponent {
     }
   }
 
-  getNumtypeValue(value: any) {
+  getNumTypeValue(value: any) {
     switch (value.numtype) {
       case NumTypeValues.CARD:
         return NumTypeValues.CARD;
       case NumTypeValues.ORD:
         return NumTypeValues.ORD;
       default:
-        return null;
-    }
-  }
-
-  getPolarityValue(value: any) {
-    switch (value.numtype) {
-      case PolarityValues.NEG:
-        return PolarityValues.NEG;
-      case PolarityValues.POS:
-        return PolarityValues.POS;
-      default:
-        return null;
+        return undefined;
     }
   }
 
@@ -626,15 +668,11 @@ export class FilterMainPanelComponent {
       case ProntypeValues.TOT:
         return ProntypeValues.TOT;
       default:
-        return null;
+        return undefined;
     }
   }
 
   getForeignValue(value: any) {
-    if (value.foreign) {
-      return ForeignValues.YES;
-    } else {
-      return null;
-    }
+    return value.foreign ? ForeignValues.YES : undefined;
   }
 }

@@ -37,24 +37,23 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <form [formGroup]="card.filterFormGroup">
-      <mat-form-field appearance="outline">
-        <mat-label>Lemma</mat-label>
-        <input matInput formControlName="lemma" placeholder="Scrivi un lemma" />
-      </mat-form-field>
-
       <div
         *ngIf="
           card.filterRequest.upos == 'VERB' ||
           card.filterRequest.upos == 'ADJ' ||
           card.filterRequest.upos == 'NOUN' ||
-          card.filterRequest.upos == 'PRON' ||
-          card.filterRequest.upos == 'DET'
+          card.filterRequest.upos == 'NUM' ||
+          card.filterRequest.upos == 'PROPN'
         "
-        class="checkbox-group"
       >
-        <label>Genere: </label>
-        <mat-checkbox formControlName="fem">Fem</mat-checkbox>
-        <mat-checkbox formControlName="masc">Masc</mat-checkbox>
+        <mat-form-field appearance="outline">
+          <mat-label>Lemma</mat-label>
+          <input
+            matInput
+            formControlName="lemma"
+            placeholder="Scrivi un lemma"
+          />
+        </mat-form-field>
       </div>
 
       <div
@@ -65,20 +64,34 @@
           card.filterRequest.upos == 'PRON' ||
           card.filterRequest.upos == 'DET'
         "
-        class="checkbox-group"
       >
-        <label>Numero:</label>
-        <mat-checkbox formControlName="sing">Sing</mat-checkbox>
-        <mat-checkbox formControlName="plur">Plur</mat-checkbox>
-      </div>
-
-      <div *ngIf="card.filterRequest.upos == 'NOUN'">
-        <mat-label>Ner: </mat-label>
+        <mat-label>Genere: </mat-label>
         <mat-form-field appearance="fill">
-          <mat-select formControlName="prontype">
-            <mat-option value="B-LOC"> B-LOC </mat-option>
-            <mat-option value="O"> O </mat-option>
-            <mat-option value="S-LOC"> S-LOC </mat-option>
+          <mat-label>Genere</mat-label>
+          <mat-select formControlName="gender">
+            <mat-option value="Masc"> Maschile </mat-option>
+            <mat-option value="Fem"> Femminile </mat-option>
+            <mat-option> Tutti </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div
+        *ngIf="
+          card.filterRequest.upos == 'VERB' ||
+          card.filterRequest.upos == 'ADJ' ||
+          card.filterRequest.upos == 'NOUN' ||
+          card.filterRequest.upos == 'PRON' ||
+          card.filterRequest.upos == 'DET'
+        "
+      >
+        <mat-label>Numero: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-label>Numero</mat-label>
+          <mat-select formControlName="gender">
+            <mat-option value="Sing"> Singolare </mat-option>
+            <mat-option value="Plur"> Plurale </mat-option>
+            <mat-option> Tutti </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -88,10 +101,11 @@
         <mat-form-field appearance="fill">
           <mat-label>Tempo</mat-label>
           <mat-select formControlName="tense">
-            <mat-option value="Fut"> Fut </mat-option>
-            <mat-option value="Imp"> Imp </mat-option>
-            <mat-option value="Past"> Past </mat-option>
-            <mat-option value="All"> Tutti </mat-option>
+            <mat-option value="Pres"> Presente </mat-option>
+            <mat-option value="Past"> Passato </mat-option>
+            <mat-option value="Fut"> Futuro </mat-option>
+            <mat-option value="Imp"> Imperativo </mat-option>
+            <mat-option> Tutti </mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -99,10 +113,10 @@
         <mat-form-field appearance="fill">
           <mat-label>Forma</mat-label>
           <mat-select formControlName="verbform">
-            <mat-option value="Fin"> Fin </mat-option>
-            <mat-option value="Ger"> Ger </mat-option>
-            <mat-option value="Inf"> Inf </mat-option>
-            <mat-option value="All"> Tutti </mat-option>
+            <mat-option value="Fin"> Finita </mat-option>
+            <mat-option value="Ger"> Gerundio </mat-option>
+            <mat-option value="Inf"> Infinito </mat-option>
+            <mat-option> Tutti </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -112,9 +126,9 @@
         <mat-form-field appearance="fill">
           <mat-label>Numerale</mat-label>
           <mat-select formControlName="numtype">
-            <mat-option value="ord"> Ord </mat-option>
-            <mat-option value="card"> Card </mat-option>
-            <mat-option value="All"> Tutti </mat-option>
+            <mat-option value="Ord"> Ordinale </mat-option>
+            <mat-option value="Card"> Cardinale </mat-option>
+            <mat-option> Tutti </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -125,45 +139,33 @@
           <mat-label>Tipo di pronome</mat-label>
           <mat-select formControlName="prontype">
             <mat-option value="Art"> Art </mat-option>
-            <mat-option value="Dem"> Dem </mat-option>
+            <mat-option value="Dem"> Dimostrativo </mat-option>
             <mat-option value="Exc"> Exc </mat-option>
-            <mat-option value="Ind"> Ind </mat-option>
-            <mat-option value="Int"> Int </mat-option>
-            <mat-option value="Neg"> Neg </mat-option>
-            <mat-option value="Prs"> Prs </mat-option>
-            <mat-option value="Rel"> Rel </mat-option>
-            <mat-option value="Tot"> Tot </mat-option>
-            <mat-option value="All"> Tutti </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div *ngIf="card.filterRequest.upos == 'ADJ'">
-        <mat-label>Polarità: </mat-label>
-        <mat-form-field appearance="fill">
-          <mat-label>Polarità</mat-label>
-          <mat-select formControlName="polarity">
+            <mat-option value="Ind"> Indefinito </mat-option>
+            <mat-option value="Int"> Interrogativo </mat-option>
             <mat-option value="Neg"> Negativo </mat-option>
-            <mat-option value="Pos"> Positivo </mat-option>
-            <mat-option value="All"> Tutti </mat-option>
+            <mat-option value="Prs"> Personale </mat-option>
+            <mat-option value="Rel"> Relativo </mat-option>
+            <mat-option> Tutti </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
 
-      <div
-        *ngIf="
-          card.filterRequest.upos == 'ADJ' || card.filterRequest.upos == 'NOUN'
-        "
-        class="checkbox-group"
-      >
+      <div *ngIf="card.filterRequest.upos == 'NOUN'" class="checkbox-group">
         <label>Straniero:</label>
         <mat-checkbox formControlName="foreign">Si</mat-checkbox>
       </div>
 
-      <div *ngIf="card.filterRequest.upos == 'DET'" class="checkbox-group">
-        <label>Tipo:</label>
-        <mat-checkbox formControlName="def">Det</mat-checkbox>
-        <mat-checkbox formControlName="ind">Indet</mat-checkbox>
+      <div *ngIf="card.filterRequest.upos == 'DET'">
+        <mat-label>Tipo: </mat-label>
+        <mat-form-field appearance="fill">
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="definite">
+            <mat-option value="Def"> Determinativo </mat-option>
+            <mat-option value="Ind"> Indeterminativo </mat-option>
+            <mat-option> Tutti </mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
 
       <button
@@ -187,6 +189,7 @@
       <form [formGroup]="card.lensFormGroup">
         <mat-label>Font: </mat-label>
         <mat-form-field appearance="fill">
+          <mat-label>Font</mat-label>
           <mat-select formControlName="font">
             <mat-option value="Arial"> Arial </mat-option>
             <mat-option value="Verdana"> Verdana </mat-option>
@@ -262,8 +265,9 @@
     <form [formGroup]="card.sentenceFormGroup">
       <mat-label>Tipo: </mat-label>
       <mat-form-field appearance="fill">
+        <mat-label>Tipo</mat-label>
         <mat-select formControlName="type">
-          <mat-option value="int"> Int </mat-option>
+          <mat-option value="int"> Interrogativa </mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -272,6 +276,7 @@
         color="warn"
         (click)="applySentence(card)"
         class="apply-button"
+        [disabled]="!card.sentenceFormGroup.valid"
       >
         Applica
       </button>
@@ -288,6 +293,7 @@
       <form [formGroup]="card.lensFormGroup">
         <mat-label>Font: </mat-label>
         <mat-form-field appearance="fill">
+          <mat-label>Font</mat-label>
           <mat-select formControlName="font">
             <mat-option value="Arial"> Arial </mat-option>
             <mat-option value="Verdana"> Verdana </mat-option>
@@ -335,17 +341,35 @@
         mat-icon-button
         aria-label="Link"
         class="remove-button"
-        (click)="linkSequenceCard($event, card)"
-        *ngIf="card.sequenceFor.length < 2"
+        (click)="linkSequenceCard1($event, card)"
+        *ngIf="card.sequenceFor[0] == undefined"
       >
-        <mat-icon color="warn">settings_ethernet</mat-icon>
+        <mat-icon color="warn">filter_1</mat-icon>
       </button>
       <button
         mat-icon-button
         aria-label="Link"
         class="remove-button"
-        (click)="unlinkSequenceCard($event, card)"
-        *ngIf="card.sequenceFor.length == 2"
+        (click)="unlinkSequenceCard1($event, card)"
+        *ngIf="card.sequenceFor[0] != undefined"
+      >
+        <mat-icon color="warn"> backspace </mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="linkSequenceCard2($event, card)"
+        *ngIf="card.sequenceFor[1] == undefined"
+      >
+        <mat-icon color="warn">filter_2</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        aria-label="Link"
+        class="remove-button"
+        (click)="unlinkSequenceCard2($event, card)"
+        *ngIf="card.sequenceFor[1] != undefined"
       >
         <mat-icon color="warn"> backspace </mat-icon>
       </button>
@@ -355,7 +379,7 @@
     </mat-expansion-panel-header>
     <form [formGroup]="card.sequenceFormGroup">
       <mat-form-field appearance="fill">
-        <mat-label>distanza</mat-label>
+        <mat-label>Distanza</mat-label>
         <input matInput formControlName="distance" />
       </mat-form-field>
 

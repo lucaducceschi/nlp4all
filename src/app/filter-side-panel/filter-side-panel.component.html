@@ -9,6 +9,18 @@
       AGGETTIVO
     </button>
   </mat-list-item>
+
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('NUM')"
+    >
+      NUMERALE
+    </button>
+  </mat-list-item>
+
   <mat-list-item>
     <button
       mat-flat-button
@@ -29,6 +41,18 @@
       NOME
     </button>
   </mat-list-item>
+
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('PROPN')"
+    >
+      NOME PROPRIO
+    </button>
+  </mat-list-item>
+
   <mat-list-item>
     <button
       mat-flat-button
@@ -37,6 +61,17 @@
       (click)="addFilterCard('PRON')"
     >
       PRONOME
+    </button>
+  </mat-list-item>
+
+  <mat-list-item>
+    <button
+      mat-flat-button
+      class="pos-button"
+      color="warn"
+      (click)="addFilterCard('PREPOSIZIONE')"
+    >
+      PREPOSIZIONE
     </button>
   </mat-list-item>
 

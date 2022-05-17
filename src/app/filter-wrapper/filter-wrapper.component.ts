@@ -70,7 +70,7 @@ export class FilterWrapperComponent {
             embeddingFor: undefined,
             lens: DISABLED_FILTER_LENS,
             sentenceFormGroup: this.fb.group({
-              type: [undefined],
+              type: [undefined, Validators.required],
             }),
             lensFormGroup: this.fb.group({
               font: ['Arial'],
@@ -119,18 +119,14 @@ export class FilterWrapperComponent {
             lens: DISABLED_FILTER_LENS,
             filterFormGroup: this.fb.group({
               lemma: [undefined],
-              fem: [false],
-              masc: [false],
-              sing: [false],
-              plur: [false],
-              tense: ['All'],
+              gender: [undefined],
+              num: [undefined],
+              tense: [undefined],
               ner: [undefined],
-              verbform: ['All'],
-              def: [false],
-              ind: [false],
-              numtype: ['All'],
-              prontype: ['All'],
-              polarity: ['All'],
+              verbform: [undefined],
+              definite: [undefined],
+              numtype: [undefined],
+              prontype: [undefined],
               foreign: [false],
             }),
             lensFormGroup: this.fb.group({
@@ -271,6 +267,23 @@ export class FilterWrapperComponent {
         this.tokenLenses[embeddingTokenLensIndex].lens = DISABLED_FILTER_LENS;
         this.updateTokenLensesEvent.emit(this.tokenLenses);
       }
+    }
+
+    const sequenceCardIndex = this.sequenceCards.findIndex((sequenceCard) =>
+      sequenceCard.sequenceFor.includes(filterCardToRemove.id)
+    );
+
+    if (sequenceCardIndex != -1) {
+      const filterCardIndex = this.sequenceCards[
+        sequenceCardIndex
+      ].sequenceFor.findIndex(
+        (filterCardId) => filterCardId == filterCardToRemove.id
+      );
+
+      this.sequenceCards[sequenceCardIndex].lines[filterCardIndex].remove();
+      this.sequenceCards[sequenceCardIndex].lines[filterCardIndex] = undefined;
+      this.sequenceCards[sequenceCardIndex].sequenceFor[filterCardIndex] =
+        undefined;
     }
 
     this.filterCards = this.filterCards.filter(
