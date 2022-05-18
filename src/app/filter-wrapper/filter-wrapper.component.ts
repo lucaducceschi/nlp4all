@@ -57,6 +57,7 @@ export class FilterWrapperComponent {
             id: Math.floor(Math.random() * 100000),
             position: initialCardPosition(),
             notApplied: true,
+            tokenCount: undefined,
             active: false,
             zIndex:
               this.filterCards.length +
@@ -108,6 +109,7 @@ export class FilterWrapperComponent {
             position: initialCardPosition(),
             notApplied: true,
             active: false,
+            tokenCount: undefined,
             zIndex:
               this.filterCards.length +
               this.sentenceCards.length +
@@ -142,24 +144,30 @@ export class FilterWrapperComponent {
   }
 
   applyFilter(filterCard: FilterCard) {
+    console.log('Filter Request:', filterCard.filterRequest);
     this.filterService
       .getFilter(filterCard.filterRequest)
       .subscribe((tokens) => {
+        console.log('Filter Response:', tokens);
         const tokenResultsIndex = this.tokenLenses.findIndex(
           (tokenLens) => tokenLens.cardId == filterCard.id
         );
 
+        const tokensSplitted = tokens.split(' ').filter((token) => token != '');
+
         if (tokenResultsIndex != -1) {
-          this.tokenLenses[tokenResultsIndex].tokenResult = tokens.split(' ');
+          this.tokenLenses[tokenResultsIndex].tokenResult = tokensSplitted;
+          filterCard.tokenCount = tokensSplitted.length;
           this.updateTokenLensesEvent.emit(this.tokenLenses);
         } else {
           this.tokenLenses.push(
             aTokenLens({
               cardId: filterCard.id,
-              tokenResult: tokens.split(' '),
+              tokenResult: tokensSplitted,
               lens: filterCard.lens,
             })
           );
+          filterCard.tokenCount = tokensSplitted.length;
           this.updateTokenLensesEvent.emit(this.tokenLenses);
         }
       });
@@ -171,24 +179,31 @@ export class FilterWrapperComponent {
     });
     sentenceCard.sentenceRequest.word_ids =
       embeddedTokenLens?.tokenResult || [];
+
+    console.log('Sentence Request:', sentenceCard.sentenceRequest);
     this.filterService
       .getSentence(sentenceCard.sentenceRequest)
       .subscribe((tokens) => {
+        console.log('Sentence Response', tokens);
         const tokenResultsIndex = this.tokenLenses.findIndex(
           (tokenLens) => tokenLens.cardId == sentenceCard.id
         );
 
+        const tokensSplitted = tokens.split(' ').filter((token) => token != '');
+
         if (tokenResultsIndex != -1) {
-          this.tokenLenses[tokenResultsIndex].tokenResult = tokens.split(' ');
+          this.tokenLenses[tokenResultsIndex].tokenResult = tokensSplitted;
+          sentenceCard.tokenCount = tokensSplitted.length;
           this.updateTokenLensesEvent.emit(this.tokenLenses);
         } else {
           this.tokenLenses.push(
             aTokenLens({
               cardId: sentenceCard.id,
-              tokenResult: tokens.split(' '),
+              tokenResult: tokensSplitted,
               lens: sentenceCard.lens,
             })
           );
+          sentenceCard.tokenCount = tokensSplitted.length;
           this.updateTokenLensesEvent.emit(this.tokenLenses);
         }
       });
@@ -208,9 +223,11 @@ export class FilterWrapperComponent {
     $event.sequenceCard.sequenceRequest.after =
       afterTokenLens?.tokenResult || [];
 
+    console.log('Sequence Request:', $event.sequenceCard.sequenceRequest);
     this.filterService
       .getSequence($event.sequenceCard.sequenceRequest)
       .subscribe((sequenceResponse) => {
+        console.log('Sequence Response:', sequenceResponse);
         const beforeTokenResults = Object.values(sequenceResponse).flatMap(
           (sequenceTokensBySentence) =>
             sequenceTokensBySentence.flatMap(([_, before]) => before)
@@ -330,7 +347,7 @@ export class FilterWrapperComponent {
     }
 
     const sequenceFilterCardAfterIndex = this.filterCards.findIndex(
-      (filterCard) => filterCard.id == sequenceCardToRemove.sequenceFor[0]
+      (filterCard) => filterCard.id == sequenceCardToRemove.sequenceFor[1]
     );
 
     if (sequenceFilterCardAfterIndex != -1) {
@@ -341,8 +358,10 @@ export class FilterWrapperComponent {
       (sequenceCard) => sequenceCard.id != sequenceCardToRemove.id
     );
 
-    this.tokenLenses = this.tokenLenses.filter(
-      (tokenLens) => tokenLens.cardId != sequenceCardToRemove.id
+    this.applyFilter(this.filterCards[sequenceFilterCardBeforeIndex]);
+    setTimeout(
+      () => this.applyFilter(this.filterCards[sequenceFilterCardAfterIndex]),
+      1000
     );
 
     this.updateTokenLensesEvent.emit(this.tokenLenses);

@@ -13,6 +13,7 @@ export interface Card {
   notApplied: boolean;
   active: boolean;
   position: CardPosition;
+  tokenCount: number;
 }
 
 export interface CardPosition {
